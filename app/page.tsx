@@ -13,7 +13,7 @@ const dermPathUrl = "https://dermpath-navigator.vercel.app/";
 
 function AppHeader({ home, onBack, language, setLanguage }: { home?: boolean; onBack?: () => void; language: Language; setLanguage: (language: Language) => void }) {
   return <header className={styles.appHeader}>
-    <a className={styles.brand} href="/" aria-label="Ir para a página inicial do DermPath Quiz"><img src="/dermpath-quiz-logo.png" alt="DermPath Quiz" /><span><strong>DermPath <em>Quiz</em></strong><small>Votações clínicas</small></span></a>
+    <a className={styles.brand} href="/" aria-label="Ir para a página inicial do DermPath Quiz"><img src="/dermpath-quiz-logo.png" alt="DermPath Quiz" /><span><strong>DermPath <em>Quiz</em></strong></span></a>
     <nav className={styles.appControls} aria-label="Navegação do quiz">
       <a className={styles.dermPathBrand} href={dermPathUrl} aria-label="Abrir DermPath Navigator"><img src="/dermpath-navigator-logo.png" alt="DermPath Navigator" /></a>
       {!home && <button className={styles.back} onClick={onBack}>← {language === "pt" ? "Voltar" : "Back"}</button>}
