@@ -1,10 +1,10 @@
-import { desc } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
-import { questions } from "../../../db/schema";
+import { questions, votes } from "../../../db/schema";
 
 export async function GET() {
-  const rows = await getDb().select().from(questions).orderBy(desc(questions.id));
-  return Response.json({ questions: rows.map((q) => ({ ...q, options: JSON.parse(q.options) })) });
+  const rows = await getDb().select({ question: questions, responseCount: count(votes.id) }).from(questions).leftJoin(votes, eq(votes.questionId, questions.id)).groupBy(questions.id).orderBy(desc(questions.id));
+  return Response.json({ questions: rows.map(({ question, responseCount }) => ({ ...question, options: JSON.parse(question.options), responseCount })) });
 }
 
 export async function POST(request: Request) {
