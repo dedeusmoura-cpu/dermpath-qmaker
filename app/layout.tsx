@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Votações clínicas",
-  description: "Questões interativas para aulas de medicina.",
+  title: "DermPath Quiz",
+  description: "Questões clínicas interativas do ecossistema DermPath Navigator.",
   icons: {
-    icon: "/favicon.svg",
-    shortcut: "/favicon.svg",
+    icon: "/dermpath-quiz-logo.png",
+    shortcut: "/dermpath-quiz-logo.png",
   },
 };
 
