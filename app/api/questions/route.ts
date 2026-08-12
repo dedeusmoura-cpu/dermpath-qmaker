@@ -9,7 +9,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { title?: string; stem?: string; options?: string[]; correctAnswer?: number };
+    const body = await request.json() as { title?: string; stem?: string; options?: string[]; correctAnswer?: number; imageUrl?: string };
     const title = body.title?.trim() ?? "";
     const stem = body.stem?.trim() ?? "";
     const options = body.options?.map((option) => option.trim()).filter(Boolean) ?? [];
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     if (!title || !stem || options.length < 2 || options.length > 6 || correctAnswer === undefined || correctAnswer < 0 || correctAnswer >= options.length) {
       return Response.json({ error: "Preencha título, enunciado, alternativas e resposta correta." }, { status: 400 });
     }
-    const [question] = await getDb().insert(questions).values({ title, stem, options: JSON.stringify(options), correctAnswer, createdAt: new Date() }).returning();
+    const [question] = await getDb().insert(questions).values({ title, stem, options: JSON.stringify(options), correctAnswer, imageUrl: body.imageUrl?.trim() || null, createdAt: new Date() }).returning();
     return Response.json({ question: { ...question, options } }, { status: 201 });
   } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Não foi possível criar a questão." }, { status: 500 }); }
 }

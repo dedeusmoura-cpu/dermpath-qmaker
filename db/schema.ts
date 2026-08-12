@@ -5,6 +5,7 @@ export const questions = sqliteTable("questions", {
   title: text("title").notNull(),
   stem: text("stem").notNull(),
   options: text("options").notNull(),
+  imageUrl: text("image_url"),
   correctAnswer: integer("correct_answer").notNull(),
   isOpen: integer("is_open", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
