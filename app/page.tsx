@@ -9,7 +9,7 @@ type Results = { question: Question; counts?: number[]; answers?: Word[]; total:
 type Language = "pt" | "en";
 
 const letters = ["a", "b", "c", "d", "e", "f"];
-const dermPathUrl = "https://dermpath-navigator-med.dedeusmoura.chatgpt.site/";
+const dermPathUrl = "https://dermpath-navigator.vercel.app/";
 
 function AppHeader({ home, onBack, language, setLanguage }: { home?: boolean; onBack?: () => void; language: Language; setLanguage: (language: Language) => void }) {
   return <header className={styles.appHeader}>
