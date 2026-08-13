@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DermPath Quiz",
+  title: "DermPath QMaker",
   description: "Questões clínicas interativas do ecossistema DermPath Navigator.",
   icons: {
     icon: "/dermpath-quiz-logo.png",
