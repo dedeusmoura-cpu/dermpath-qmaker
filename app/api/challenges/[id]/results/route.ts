@@ -10,3 +10,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   const ranking = await db.select({ alias: challengeParticipants.alias, correct: sql<number>`coalesce(sum(case when ${challengeAnswers.isCorrect} then 1 else 0 end), 0)`, answered: count(challengeAnswers.id) }).from(challengeParticipants).leftJoin(challengeAnswers, eq(challengeAnswers.participantId, challengeParticipants.id)).where(eq(challengeParticipants.challengeId, challengeId)).groupBy(challengeParticipants.id).orderBy(desc(sql`coalesce(sum(case when ${challengeAnswers.isCorrect} then 1 else 0 end), 0)`), asc(challengeParticipants.alias));
   return Response.json({ challenge, totalQuestions: questionCount.total, ranking: ranking.map((entry) => ({ ...entry, correct: Number(entry.correct), answered: Number(entry.answered) })) });
 }
+
+export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params; const challengeId = Number(id); const db = getDb();
+  await db.delete(challengeAnswers).where(eq(challengeAnswers.challengeId, challengeId));
+  await db.delete(challengeParticipants).where(eq(challengeParticipants.challengeId, challengeId));
+  return Response.json({ ok: true });
+}
