@@ -1,6 +1,7 @@
 import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { questions, votes } from "../../../db/schema";
+import { apiError } from "../_lib/error-response";
 
 export async function GET() {
   const rows = await getDb().select({ question: questions, responseCount: count(votes.id) }).from(questions).leftJoin(votes, eq(votes.questionId, questions.id)).groupBy(questions.id).orderBy(desc(questions.id));
@@ -20,5 +21,5 @@ export async function POST(request: Request) {
     }
     const [question] = await getDb().insert(questions).values({ title, stem, kind, options: JSON.stringify(options), correctAnswer, imageUrl: body.imageUrl?.trim() || null, createdAt: new Date() }).returning();
     return Response.json({ question: { ...question, options } }, { status: 201 });
-  } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Não foi possível criar a questão." }, { status: 500 }); }
+  } catch (error) { return apiError(error, "Não foi possível criar a questão."); }
 }

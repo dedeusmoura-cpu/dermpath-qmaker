@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "../../../../db";
 import { challengeAnswers, questions } from "../../../../db/schema";
+import { requireTeacherPin } from "../../_lib/teacher-auth";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,6 +11,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 }
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireTeacherPin(request);
+  if (authError) return authError;
   const { id } = await params;
   const questionId = Number(id);
   const db = getDb();

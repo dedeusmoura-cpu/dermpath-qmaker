@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `vote_question_device_unique` ON `votes` (`question_id`,`device_id`);

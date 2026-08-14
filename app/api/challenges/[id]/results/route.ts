@@ -1,6 +1,7 @@
 import { asc, count, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "../../../../../db";
 import { challengeAnswers, challengeParticipants, challengeQuestions, challenges, questions } from "../../../../../db/schema";
+import { requireTeacherPin } from "../../../_lib/teacher-auth";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params; const challengeId = Number(id); const db = getDb();
@@ -15,7 +16,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   return Response.json({ challenge, totalQuestions: questionCount.total, ranking: ranking.map((entry) => ({ ...entry, correct: Number(entry.correct), answered: Number(entry.answered) })), distribution });
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireTeacherPin(request);
+  if (authError) return authError;
   const { id } = await params; const challengeId = Number(id); const db = getDb();
   await db.delete(challengeAnswers).where(eq(challengeAnswers.challengeId, challengeId));
   await db.delete(challengeParticipants).where(eq(challengeParticipants.challengeId, challengeId));

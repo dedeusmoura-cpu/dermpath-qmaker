@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { getDb } from "../../../../../db";
 import { challengeAnswers, challengeParticipants, challengeQuestions, questions } from "../../../../../db/schema";
+import { apiError } from "../../../_lib/error-response";
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -12,7 +13,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const [previous] = await db.select({ id: challengeAnswers.id }).from(challengeAnswers).where(and(eq(challengeAnswers.participantId, participant.id), eq(challengeAnswers.questionId, question.id))).limit(1);
     if (previous) return Response.json({ error: "Você já respondeu a esta questão." }, { status: 409 });
     const isCorrect = answerIndex === question.correctAnswer;
-    await db.insert(challengeAnswers).values({ challengeId, questionId: question.id, participantId: participant.id, answerIndex, isCorrect, createdAt: new Date() });
+    try {
+      await db.insert(challengeAnswers).values({ challengeId, questionId: question.id, participantId: participant.id, answerIndex, isCorrect, createdAt: new Date() });
+    } catch (insertError) {
+      // Two concurrent submissions can both pass the `previous` check above;
+      // the unique index on (participantId, questionId) then rejects the
+      // second insert. Report it the same way as the check above instead of
+      // leaking a raw driver error.
+      const message = insertError instanceof Error ? insertError.message : "";
+      if (message.toLowerCase().includes("unique")) return Response.json({ error: "Você já respondeu a esta questão." }, { status: 409 });
+      throw insertError;
+    }
     return Response.json({ ok: true, isCorrect }, { status: 201 });
-  } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Não foi possível registrar a resposta." }, { status: 500 }); }
+  } catch (error) { return apiError(error, "Não foi possível registrar a resposta."); }
 }

@@ -1,6 +1,7 @@
 import { desc, inArray } from "drizzle-orm";
 import { getDb } from "../../../db";
 import { challengeQuestions, challenges, questions } from "../../../db/schema";
+import { apiError } from "../_lib/error-response";
 
 export async function GET() {
   const rows = await getDb().select().from(challenges).orderBy(desc(challenges.id));
@@ -18,5 +19,5 @@ export async function POST(request: Request) {
     const [challenge] = await db.insert(challenges).values({ title: cleanedTitle, createdAt: new Date() }).returning();
     await db.insert(challengeQuestions).values(ids.map((questionId, position) => ({ challengeId: challenge.id, questionId, position })));
     return Response.json({ challenge }, { status: 201 });
-  } catch (error) { return Response.json({ error: error instanceof Error ? error.message : "Não foi possível criar o desafio." }, { status: 500 }); }
+  } catch (error) { return apiError(error, "Não foi possível criar o desafio."); }
 }

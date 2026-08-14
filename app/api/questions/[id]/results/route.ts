@@ -1,6 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "../../../../../db";
 import { questions, votes } from "../../../../../db/schema";
+import { requireTeacherPin } from "../../../_lib/teacher-auth";
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params; const questionId = Number(id); const db = getDb();
@@ -17,7 +18,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
   return Response.json({ question: { ...question, options: choices }, counts, total: counts.reduce((sum, value) => sum + value, 0) });
 }
 
-export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireTeacherPin(request);
+  if (authError) return authError;
   const { id } = await params; await getDb().delete(votes).where(eq(votes.questionId, Number(id)));
   return Response.json({ ok: true });
 }

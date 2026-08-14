@@ -19,7 +19,7 @@ export const votes = sqliteTable("votes", {
   answerText: text("answer_text"),
   deviceId: text("device_id").notNull(),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-});
+}, (table) => [uniqueIndex("vote_question_device_unique").on(table.questionId, table.deviceId)]);
 
 export const challenges = sqliteTable("challenges", {
   id: integer("id").primaryKey({ autoIncrement: true }),
