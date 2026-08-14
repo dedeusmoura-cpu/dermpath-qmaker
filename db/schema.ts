@@ -4,7 +4,7 @@ export const questions = sqliteTable("questions", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   stem: text("stem").notNull(),
-  kind: text("kind", { enum: ["choice", "open"] }).notNull().default("choice"),
+  kind: text("kind", { enum: ["choice", "cloud", "open"] }).notNull().default("choice"),
   options: text("options").notNull(),
   imageUrl: text("image_url"),
   correctAnswer: integer("correct_answer").notNull(),

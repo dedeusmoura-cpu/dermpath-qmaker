@@ -9,11 +9,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { title?: string; stem?: string; options?: string[]; correctAnswer?: number; imageUrl?: string; kind?: "choice" | "open" };
+    const body = await request.json() as { title?: string; stem?: string; options?: string[]; correctAnswer?: number; imageUrl?: string; kind?: "choice" | "cloud" | "open" };
     const title = body.title?.trim() ?? "";
     const stem = body.stem?.trim() ?? "";
     const options = body.options?.map((option) => option.trim()).filter(Boolean) ?? [];
-    const kind = body.kind === "open" ? "open" : "choice";
+    const kind = body.kind === "open" || body.kind === "cloud" ? body.kind : "choice";
     const correctAnswer = body.correctAnswer ?? 0;
     if (!title || !stem || (kind === "choice" && (options.length < 2 || options.length > 6 || correctAnswer < 0 || correctAnswer >= options.length))) {
       return Response.json({ error: "Preencha título, enunciado e, nas questões objetivas, alternativas e resposta correta." }, { status: 400 });
