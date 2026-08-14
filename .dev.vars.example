@@ -1,4 +1,0 @@
-# Copy to .dev.vars for local development.
-# Shared PIN teachers enter once in the panel to unlock write actions
-# (reset votes, edit answer keys, reset trophy challenges).
-TEACHER_PIN=change-me
