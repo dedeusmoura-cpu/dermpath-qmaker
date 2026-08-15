@@ -371,6 +371,17 @@ function ChallengeDistribution({
               <h2 style={{ margin: "6px 0 0", color: "#123765", fontSize: 19 }}>
                 {question.title}
               </h2>
+              <p
+                style={{
+                  margin: "10px 0 0",
+                  color: "#526278",
+                  fontSize: 14,
+                  lineHeight: 1.5,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {question.stem}
+              </p>
             </div>
             <label
               style={{
@@ -1728,6 +1739,17 @@ export default function Home() {
                 {en ? "TEACHER PANEL" : "PAINEL DO PROFESSOR"} · {textKind}
               </span>
               <h1>{results.question.title}</h1>
+              <p
+                style={{
+                  margin: "12px 0 0",
+                  maxWidth: 780,
+                  color: "#41536c",
+                  lineHeight: 1.5,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {results.question.stem}
+              </p>
               <p>
                 {en
                   ? "Updates automatically every 5 seconds."
