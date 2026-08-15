@@ -273,12 +273,21 @@ function Toast({
 
 function BubbleCloud({ answers }: { answers: Word[] }) {
   const ranked = [...answers].sort((a, b) => b.count - a.count);
+  const total = ranked.reduce((sum, answer) => sum + answer.count, 0) || 1;
   const max = Math.max(...ranked.map((answer) => answer.count), 1);
   const min = Math.min(...ranked.map((answer) => answer.count), max);
+  // A response's visual weight should be comparable within the current class,
+  // rather than shrink merely because the class has submitted few responses.
+  const fontFloor = total <= 10 ? 34 : total <= 25 ? 30 : 26;
   return (
     <div className={styles.cloud}>
       {ranked.map((answer, index) => {
         const intensity = max === min ? 0 : (answer.count - min) / (max - min);
+        const share = answer.count / total;
+        const fontSize = Math.round(
+          fontFloor + (78 - fontFloor) * Math.pow(share, 0.55),
+        );
+        const percentage = Math.round(share * 100);
         const angle = index * 2.399963;
         const radius =
           ranked.length === 1
@@ -292,7 +301,7 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
             className={styles.bubble}
             key={answer.text}
             style={{
-              fontSize: `${15 + intensity * 30}px`,
+              fontSize: `${fontSize}px`,
               color: `rgb(${red} ${green} ${blue})`,
               left: `${50 + Math.cos(angle) * radius}%`,
               top: `${50 + Math.sin(angle) * radius * 0.78}%`,
@@ -300,7 +309,9 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
             }}
           >
             <b>{answer.text}</b>
-            <small>{answer.count}</small>
+            <small>
+              {answer.count} · {percentage}%
+            </small>
           </div>
         );
       })}
