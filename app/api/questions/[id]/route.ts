@@ -31,3 +31,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   return Response.json({ question: { ...question, correctAnswer, options } });
 }
+
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const authError = requireTeacherPin(request);
+  if (authError) return authError;
+  const { id } = await params;
+  const questionId = Number(id);
+  const db = getDb();
+  const [question] = await db.select({ id: questions.id }).from(questions).where(eq(questions.id, questionId)).limit(1);
+  if (!question) return Response.json({ error: "Questão não encontrada." }, { status: 404 });
+  // Votes, trophy-challenge slots, and trophy-challenge answers for this
+  // question all cascade on delete (db/schema.ts references), so removing
+  // the question cleans those up too.
+  await db.delete(questions).where(eq(questions.id, questionId));
+  return Response.json({ ok: true });
+}
