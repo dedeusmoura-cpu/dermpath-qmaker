@@ -143,17 +143,17 @@ export default function Home() {
   const [form, setForm] = useState({ title: "", stem: "", imageUrl: "", kind: "choice" as "choice" | "cloud" | "open", options: ["", "", "", ""], correctAnswer: 0 });
   const [editingId, setEditingId] = useState<number | null>(null);
   const query = useMemo(() => typeof window !== "undefined" ? new URLSearchParams(location.search) : null, []);
-  const id = query?.get("q"); const trophyId = query?.get("trofeu"); const panel = query?.get("painel") === "1";
+  const id = query?.get("q"); const trophyId = query?.get("trofeu"); const panel = query?.get("painel") === "1"; const historyView = query?.get("historico") === "1";
   const en = language === "en";
 
   const load = useCallback(async () => { const response = await fetch("/api/questions"); if (response.ok) setQuestions((await response.json()).questions); }, []);
   const loadChallengeList = useCallback(async () => { const response = await fetch("/api/challenges"); if (response.ok) setChallengeList((await response.json()).challenges); }, []);
-  function goToHistory() { load(); loadChallengeList(); setMode("home"); }
+  function goToHistory() { location.href = "?historico=1"; }
   const loadQuestion = useCallback(async (questionId: string) => { const response = await fetch(`/api/questions/${questionId}`); if (response.ok) setQuestion((await response.json()).question); }, []);
   const loadResults = useCallback(async (questionId: string) => { const response = await fetch(`/api/questions/${questionId}/results`); if (response.ok) { const data = await response.json(); setResults(data); setQuestion(data.question); } }, []);
   const loadChallenge = useCallback(async (challengeId: string) => { const response = await fetch(`/api/challenges/${challengeId}`); if (response.ok) setChallenge((await response.json()).challenge); }, []);
   const loadChallengeResults = useCallback(async (challengeId: string) => { const response = await fetch(`/api/challenges/${challengeId}/results`); if (response.ok) setChallengeResults(await response.json()); }, []);
-  useEffect(() => { if (trophyId) { setMode(panel ? "challenge-panel" : "challenge"); loadChallenge(trophyId); if (panel) loadChallengeResults(trophyId); } else if (id) { setMode(panel ? "panel" : "vote"); panel ? loadResults(id) : loadQuestion(id); } else { load(); loadChallengeList(); } }, [id, trophyId, panel, load, loadQuestion, loadResults, loadChallenge, loadChallengeResults, loadChallengeList]);
+  useEffect(() => { if (trophyId) { setMode(panel ? "challenge-panel" : "challenge"); loadChallenge(trophyId); if (panel) loadChallengeResults(trophyId); } else if (id) { setMode(panel ? "panel" : "vote"); panel ? loadResults(id) : loadQuestion(id); } else { if (historyView) setMode("home"); load(); loadChallengeList(); } }, [id, trophyId, panel, historyView, load, loadQuestion, loadResults, loadChallenge, loadChallengeResults, loadChallengeList]);
   useEffect(() => { if (!panel || !id) return; const timer = setInterval(() => loadResults(id), 5000); return () => clearInterval(timer); }, [id, panel, loadResults]);
   useEffect(() => { if (!panel || !trophyId) return; const timer = setInterval(() => loadChallengeResults(trophyId), 5000); return () => clearInterval(timer); }, [trophyId, panel, loadChallengeResults]);
 
@@ -220,7 +220,11 @@ export default function Home() {
   async function uploadImage(file?: File) { if (!file) return; if (!file.type.startsWith("image/")) return setUploadError(en ? "Choose an image file." : "Escolha um arquivo de imagem."); if (file.size > 8 * 1024 * 1024) return setUploadError(en ? "The image must be up to 8 MB." : "A imagem deve ter no máximo 8 MB."); setUploading(true); setUploadError(""); const data = new FormData(); data.append("file", file); try { const response = await fetch("/api/uploads", { method: "POST", body: data }); const payload = await response.json().catch(() => null); if (!response.ok || !payload) throw new Error(payload?.error ?? (en ? "Could not upload the image." : "Não foi possível enviar a imagem.")); setForm((current) => ({ ...current, imageUrl: payload.url })); } catch (error) { setUploadError(error instanceof Error ? error.message : (en ? "Could not upload the image." : "Não foi possível enviar a imagem.")); } finally { setUploading(false); } }
   function chooseImage(event: ChangeEvent<HTMLInputElement>) { uploadImage(event.target.files?.[0]); event.target.value = ""; }
   function dropImage(event: DragEvent<HTMLDivElement>) { event.preventDefault(); setDraggingImage(false); uploadImage(event.dataTransfer.files?.[0]); }
-  const goHome = () => { location.href = location.pathname; };
+  // Every "← Voltar" in the app (teacher panels, vote screen, trophy
+  // challenge screens) returns to the History screen rather than the
+  // create-quiz landing page — that's genuinely the "previous screen" for
+  // how these are reached (History → open a panel/QR code).
+  const goHome = () => { location.href = "?historico=1"; };
   async function deleteQuestion(questionId: number, title: string) {
     if (!confirm(en ? `Delete "${title}"? This also removes its votes and its slot in any trophy challenge.` : `Excluir "${title}"? Isso também remove os votos e a participação em qualquer desafio troféu.`)) return;
     const response = await teacherFetch(`/api/questions/${questionId}`, { method: "DELETE" }, en);
