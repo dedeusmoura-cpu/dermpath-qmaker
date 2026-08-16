@@ -72,7 +72,7 @@ function AppHeader({
         href="/"
         aria-label="Ir para a página inicial do DermPath QMaker"
       >
-        <img src="/dermpath-qmaker-logo.svg" alt="DermPath QMaker" />
+        <img src="/dermpath-quiz-logo.png" alt="DermPath QMaker" />
         <span>
           <strong>
             <span className={styles.derm}>Derm</span>
