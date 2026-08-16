@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: "DermPath QMaker",
   description: "Questões clínicas interativas do ecossistema DermPath Navigator.",
   icons: {
-    icon: "/dermpath-quiz-logo.png",
-    shortcut: "/dermpath-quiz-logo.png",
+    icon: "/dermpath-qmaker-logo.svg",
+    shortcut: "/dermpath-qmaker-logo.svg",
   },
 };
 
