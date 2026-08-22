@@ -280,15 +280,11 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
   // rather than shrink merely because the class has submitted few responses.
   const fontFloor = total <= 10 ? 34 : total <= 25 ? 30 : 26;
   const colorForIntensity = (intensity: number) => {
-    // Blue marks the least frequent answers; amber creates a clear, warm
-    // midpoint before the most-voted answer reaches red.
-    const [from, to, progress] =
-      intensity < 0.5
-        ? [[36, 105, 190], [238, 157, 55], intensity * 2]
-        : [[238, 157, 55], [222, 61, 48], (intensity - 0.5) * 2];
-    const channel = (index: number) =>
-      Math.round(from[index] + (to[index] - from[index]) * progress);
-    return `rgb(${channel(0)} ${channel(1)} ${channel(2)})`;
+    if (intensity >= 0.86) return "#dc3e32"; // red
+    if (intensity >= 0.55) return "#f28c28"; // orange
+    if (intensity >= 0.35) return "#d7a42a"; // gold
+    if (intensity >= 0.12) return "#4ea5d8"; // light blue
+    return "#1e4d8f"; // dark blue
   };
   return (
     <div className={styles.cloud}>
@@ -297,7 +293,7 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
         // A gentle curve spreads small-but-meaningful differences (for
         // example 1, 2 and 3 votes) across the full palette instead of
         // leaving nearly every answer blue when one response dominates.
-        const colorIntensity = Math.pow(intensity, 0.4);
+        const colorIntensity = Math.pow(intensity, 0.35);
         const share = answer.count / total;
         const fontSize = Math.round(
           fontFloor + (78 - fontFloor) * Math.pow(share, 0.55),
@@ -327,6 +323,15 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
           </div>
         );
       })}
+      <div className={styles.cloudLegend} aria-label="Escala de frequência">
+        <span>Mais frequente</span>
+        <i className={styles.legendRed} />
+        <i className={styles.legendOrange} />
+        <i className={styles.legendGold} />
+        <i className={styles.legendLightBlue} />
+        <i className={styles.legendDarkBlue} />
+        <span>Menos frequente</span>
+      </div>
     </div>
   );
 }
