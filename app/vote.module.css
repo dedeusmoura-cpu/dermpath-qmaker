@@ -17,3 +17,5 @@
 .revealFade{animation:revealFade .4s ease}@keyframes revealFade{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:translateY(0)}}
 
 .confettiBurst{position:relative;display:inline-block}.confettiBurst i{position:absolute;top:50%;left:50%;width:6px;height:6px;border-radius:2px;background:var(--c);opacity:0;animation:confetti .9s ease-out forwards}@keyframes confetti{0%{opacity:1;transform:translate(-50%,-50%) rotate(0) translateY(0)}100%{opacity:0;transform:translate(-50%,-50%) rotate(200deg) translateY(-46px)}}
+
+.bubble{font-family:"DM Sans","Avenir Next",Arial,sans-serif;font-weight:800;letter-spacing:-.035em;line-height:1.08}.bubble small{margin-top:5px;font-family:"DM Sans","Avenir Next",Arial,sans-serif;letter-spacing:0}

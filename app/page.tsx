@@ -279,6 +279,17 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
   // A response's visual weight should be comparable within the current class,
   // rather than shrink merely because the class has submitted few responses.
   const fontFloor = total <= 10 ? 34 : total <= 25 ? 30 : 26;
+  const colorForIntensity = (intensity: number) => {
+    // Blue marks the least frequent answers; amber creates a clear, warm
+    // midpoint before the most-voted answer reaches red.
+    const [from, to, progress] =
+      intensity < 0.5
+        ? [[36, 105, 190], [238, 157, 55], intensity * 2]
+        : [[238, 157, 55], [222, 61, 48], (intensity - 0.5) * 2];
+    const channel = (index: number) =>
+      Math.round(from[index] + (to[index] - from[index]) * progress);
+    return `rgb(${channel(0)} ${channel(1)} ${channel(2)})`;
+  };
   return (
     <div className={styles.cloud}>
       {ranked.map((answer, index) => {
@@ -293,16 +304,13 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
           ranked.length === 1
             ? 0
             : 7 + Math.sqrt(index / (ranked.length - 1)) * 42;
-        const red = Math.round(24 + 195 * intensity);
-        const green = Math.round(98 - 32 * intensity);
-        const blue = Math.round(189 - 142 * intensity);
         return (
           <div
             className={styles.bubble}
             key={answer.text}
             style={{
               fontSize: `${fontSize}px`,
-              color: `rgb(${red} ${green} ${blue})`,
+              color: colorForIntensity(intensity),
               left: `${50 + Math.cos(angle) * radius}%`,
               top: `${50 + Math.sin(angle) * radius * 0.78}%`,
               zIndex: Math.round(10 + intensity * 10),

@@ -1,3 +1,4 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap");
 
-:root{--ink:#152d52;--paper:#fffefa;--navy:#0d3565;--gold:#d9ad43}*{box-sizing:border-box}body{margin:0;background:#f8f4eb;color:var(--ink);font-family:Arial,Helvetica,sans-serif}button,input,textarea,select{font:inherit}
+:root{--ink:#152d52;--paper:#fffefa;--navy:#0d3565;--gold:#d9ad43}*{box-sizing:border-box}body{margin:0;background:#f8f4eb;color:var(--ink);font-family:"DM Sans","Avenir Next",Arial,sans-serif}button,input,textarea,select{font:inherit}
