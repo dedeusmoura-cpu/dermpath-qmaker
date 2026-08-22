@@ -294,6 +294,10 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
     <div className={styles.cloud}>
       {ranked.map((answer, index) => {
         const intensity = max === min ? 0 : (answer.count - min) / (max - min);
+        // A gentle curve spreads small-but-meaningful differences (for
+        // example 1, 2 and 3 votes) across the full palette instead of
+        // leaving nearly every answer blue when one response dominates.
+        const colorIntensity = Math.pow(intensity, 0.4);
         const share = answer.count / total;
         const fontSize = Math.round(
           fontFloor + (78 - fontFloor) * Math.pow(share, 0.55),
@@ -310,7 +314,7 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
             key={answer.text}
             style={{
               fontSize: `${fontSize}px`,
-              color: colorForIntensity(intensity),
+              color: colorForIntensity(colorIntensity),
               left: `${50 + Math.cos(angle) * radius}%`,
               top: `${50 + Math.sin(angle) * radius * 0.78}%`,
               zIndex: Math.round(10 + intensity * 10),
