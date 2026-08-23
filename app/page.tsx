@@ -189,7 +189,7 @@ function FormatIcon({ kind }: { kind: "choice" | "cloud" | "open" | "trophy" }) 
   );
 }
 
-function QrPanel({ url, alt, en }: { url: string; alt: string; en: boolean }) {
+function QrPanel({ url, panelUrl, alt, en }: { url: string; panelUrl: string; alt: string; en: boolean }) {
   const [copied, setCopied] = useState(false);
   async function copyLink() {
     let ok = true;
@@ -219,7 +219,7 @@ function QrPanel({ url, alt, en }: { url: string; alt: string; en: boolean }) {
   return (
     <aside className={styles.qr}>
       <span className={styles.kicker}>
-        {en ? "CLASSROOM ENTRY" : "ENTRADA DA TURMA"}
+        {en ? "QR CODE TO RESPOND" : "QR CODE PARA RESPONDER"}
       </span>
       <img
         src={`https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=12&data=${encodeURIComponent(url)}`}
@@ -235,6 +235,10 @@ function QrPanel({ url, alt, en }: { url: string; alt: string; en: boolean }) {
           <code>{url}</code>
         </button>
       </span>
+      <div className={styles.panelLink}>
+        <b>{en ? "Link to the response panel:" : "Link para o painel de respostas:"}</b>
+        <a href={panelUrl}>{panelUrl}</a>
+      </div>
     </aside>
   );
 }
@@ -1234,6 +1238,7 @@ export default function Home() {
 
   if (mode === "challenge-panel" && challenge && challengeResults) {
     const joinUrl = `${location.origin}?trofeu=${challenge.id}`;
+    const panelUrl = `${location.origin}?trofeu=${challenge.id}&painel=1`;
     const perfectWinners = challengeResults.ranking.filter(
       (entry) =>
         challengeResults.totalQuestions > 0 &&
@@ -1295,7 +1300,7 @@ export default function Home() {
           </header>
           <div className={styles.grid}>
             {showQr && (
-              <QrPanel url={joinUrl} alt="QR Code do desafio" en={en} />
+              <QrPanel url={joinUrl} panelUrl={panelUrl} alt="QR Code do desafio" en={en} />
             )}
             <article className={styles.results}>
               <span className={styles.kicker}>{en ? "TROPHY" : "TROFÉU"}</span>
@@ -1690,6 +1695,7 @@ export default function Home() {
 
   if (mode === "panel" && results) {
     const url = `${location.origin}?q=${results.question.id}`;
+    const panelUrl = `${location.origin}?q=${results.question.id}&painel=1`;
     const textKind =
       results.question.kind === "cloud"
         ? en
@@ -1815,7 +1821,7 @@ export default function Home() {
             </div>
           </header>
           <div className={styles.grid}>
-            {showQr && <QrPanel url={url} alt="QR Code" en={en} />}
+            {showQr && <QrPanel url={url} panelUrl={panelUrl} alt="QR Code" en={en} />}
             <article className={styles.results}>
               <span className={styles.kicker}>{resultLabel}</span>
               <div
