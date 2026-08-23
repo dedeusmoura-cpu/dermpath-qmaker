@@ -553,6 +553,12 @@ export default function Home() {
   function goToHistory() {
     location.href = "?historico=1";
   }
+  function goBack() {
+    // Every non-home screen returns to the actual immediately preceding page.
+    // A direct URL has no in-app predecessor, so fall back to the home page.
+    if (window.history.length > 1) window.history.back();
+    else location.href = "?";
+  }
   const loadQuestion = useCallback(async (questionId: string) => {
     const response = await fetch(`/api/questions/${questionId}`);
     if (response.ok) setQuestion((await response.json()).question);
@@ -990,13 +996,7 @@ export default function Home() {
     setDraggingImage(false);
     uploadImage(event.dataTransfer.files?.[0]);
   }
-  // Every "← Voltar" in the app (teacher panels, vote screen, trophy
-  // challenge screens) returns to the History screen rather than the
-  // create-quiz landing page — that's genuinely the "previous screen" for
-  // how these are reached (History → open a panel/QR code).
-  const goHome = () => {
-    location.href = "?historico=1";
-  };
+  const goHome = goBack;
   async function deleteQuestion(questionId: number, title: string) {
     if (
       !confirm(
@@ -1927,7 +1927,7 @@ export default function Home() {
 
   return (
     <main className={styles.shell}>
-      <AppHeader home language={language} setLanguage={setLanguage} />
+      <AppHeader language={language} setLanguage={setLanguage} onBack={goBack} />
       <section className={styles.dashboard}>
         <header>
           <div>
