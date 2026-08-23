@@ -167,9 +167,12 @@ const formatIconPaths = {
     <path d="M7.5 18h9.5a3.6 3.6 0 0 0 .4-7.18A5 5 0 0 0 7.6 8.9 3.6 3.6 0 0 0 7.5 18z" />
   ),
   open: <path d="M4 5.5h16v10.5H9.5L5.5 20v-4H4z" />,
+  trophy: (
+    <path d="M7 4h10v5.5a5 5 0 0 1-10 0V4Zm0 2H4.5v1.5A3.5 3.5 0 0 0 8 11M17 6h2.5v1.5A3.5 3.5 0 0 1 16 11M12 14v4M8.5 20h7" />
+  ),
 } as const;
 
-function FormatIcon({ kind }: { kind: "choice" | "cloud" | "open" }) {
+function FormatIcon({ kind }: { kind: "choice" | "cloud" | "open" | "trophy" }) {
   return (
     <svg
       className={styles.formatIcon}
@@ -1442,15 +1445,6 @@ export default function Home() {
                     : "Criar um novo quiz"}
               </h1>
             </div>
-            {!editingId && (
-              <button
-                type="button"
-                className={styles.back}
-                onClick={startCreateChallenge}
-              >
-                {en ? "🏆 Trophy challenge" : "🏆 Desafio Troféu"}
-              </button>
-            )}
           </header>
           <form className={styles.form} onSubmit={create}>
             <fieldset
@@ -1503,6 +1497,19 @@ export default function Home() {
                     <small>{format.text}</small>
                   </button>
                 ))}
+                <button
+                  type="button"
+                  className={styles.trophyFormat}
+                  onClick={startCreateChallenge}
+                >
+                  <FormatIcon kind="trophy" />
+                  <b>{en ? "Trophy challenge" : "Desafio Troféu"}</b>
+                  <small>
+                    {en
+                      ? "A scored sequence of multiple-choice questions."
+                      : "Sequência pontuada de questões de múltipla escolha."}
+                  </small>
+                </button>
               </div>
             </fieldset>
             <label>
