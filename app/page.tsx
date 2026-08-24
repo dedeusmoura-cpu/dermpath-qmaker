@@ -567,6 +567,26 @@ export default function Home() {
     if (window.history.length > 1) window.history.back();
     else location.href = "?";
   }
+  async function downloadSlideImage() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1600; canvas.height = 900;
+    const context = canvas.getContext("2d");
+    if (!context) return;
+    context.fillStyle = "#f8f4eb"; context.fillRect(0, 0, 1600, 900);
+    context.fillStyle = "#0d3565"; context.fillRect(0, 0, 1600, 120);
+    context.fillStyle = "#fff8e8"; context.font = "700 34px Arial"; context.fillText("DermPath QMaker", 72, 73);
+    context.fillStyle = "#152d52"; context.font = "600 62px Georgia";
+    const words = form.title.trim().split(/\s+/); let line = "", y = 230;
+    for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 1380) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
+    context.fillText(line, 92, y); y += 72;
+    context.font = "32px Arial"; context.fillStyle = "#526278"; context.fillText(form.stem || (en ? "Question" : "Pergunta"), 92, y);
+    if (form.imageUrl) {
+      const image = new Image(); image.crossOrigin = "anonymous"; image.src = form.imageUrl;
+      await new Promise((resolve) => { image.onload = image.onerror = resolve; });
+      if (image.naturalWidth) { const scale = Math.min(900 / image.naturalWidth, 430 / image.naturalHeight); context.drawImage(image, 92, y + 55, image.naturalWidth * scale, image.naturalHeight * scale); }
+    }
+    const link = document.createElement("a"); link.download = "quiz-16x9.png"; link.href = canvas.toDataURL("image/png"); link.click();
+  }
   const loadQuestion = useCallback(async (questionId: string) => {
     const response = await fetch(`/api/questions/${questionId}`);
     if (response.ok) setQuestion((await response.json()).question);
@@ -1231,6 +1251,9 @@ export default function Home() {
                 : en
                   ? "Create challenge and QR Code"
                   : "Criar desafio e QR Code"}
+            </button>
+            <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
+              {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
             </button>
             {challengeMessage && (
               <p className={styles.error}>{challengeMessage}</p>
