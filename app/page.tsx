@@ -51,6 +51,35 @@ type ChallengeResults = {
 
 const letters = ["a", "b", "c", "d", "e", "f"];
 const dermPathUrl = "https://dermpath-navigator.vercel.app/";
+const historyCacheLifetime = 5 * 60 * 1000;
+
+function initialMode() {
+  if (typeof window === "undefined") return "home" as const;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("trofeu"))
+    return params.get("painel") === "1" ? "challenge-panel" : "challenge";
+  if (params.get("q")) return params.get("painel") === "1" ? "panel" : "vote";
+  return "home" as const;
+}
+
+function getCachedList<T>(key: string): T | null {
+  try {
+    const saved = sessionStorage.getItem(key);
+    if (!saved) return null;
+    const parsed = JSON.parse(saved) as { value: T; savedAt: number };
+    return Date.now() - parsed.savedAt < historyCacheLifetime ? parsed.value : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheList<T>(key: string, value: T) {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ value, savedAt: Date.now() }));
+  } catch {
+    // Storage can be unavailable in private browsing; the network result still works.
+  }
+}
 
 function AppHeader({
   home,
@@ -481,7 +510,7 @@ export default function Home() {
     | "challenge-new"
     | "challenge"
     | "challenge-panel"
-  >("new");
+  >(initialMode);
   const [language, setLanguage] = useState<Language>("pt");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [questionsLoaded, setQuestionsLoaded] = useState(false);
@@ -549,13 +578,31 @@ export default function Home() {
   const en = language === "en";
 
   const load = useCallback(async () => {
+    const cached = getCachedList<Question[]>("qmaker-history-questions");
+    if (cached) {
+      setQuestions(cached);
+      setQuestionsLoaded(true);
+    }
     const response = await fetch("/api/questions");
-    if (response.ok) setQuestions((await response.json()).questions);
+    if (response.ok) {
+      const loaded = (await response.json()).questions as Question[];
+      setQuestions(loaded);
+      cacheList("qmaker-history-questions", loaded);
+    }
     setQuestionsLoaded(true);
   }, []);
   const loadChallengeList = useCallback(async () => {
+    const cached = getCachedList<{ id: number; title: string; createdAt: string }[]>("qmaker-history-challenges");
+    if (cached) {
+      setChallengeList(cached);
+      setChallengeListLoaded(true);
+    }
     const response = await fetch("/api/challenges");
-    if (response.ok) setChallengeList((await response.json()).challenges);
+    if (response.ok) {
+      const loaded = (await response.json()).challenges as { id: number; title: string; createdAt: string }[];
+      setChallengeList(loaded);
+      cacheList("qmaker-history-challenges", loaded);
+    }
     setChallengeListLoaded(true);
   }, []);
   function goToHistory() {
@@ -582,7 +629,16 @@ export default function Home() {
     if (!context) return;
     context.fillStyle = "#f8f4eb"; context.fillRect(0, 0, 1600, 900);
     context.fillStyle = "#0d3565"; context.fillRect(0, 0, 1600, 120);
-    context.fillStyle = "#fff8e8"; context.font = "700 34px Arial"; context.fillText("DermPath QMaker", 72, 73);
+    const brandLogo = new Image();
+    brandLogo.src = "/dermpath-quiz-logo.png";
+    await new Promise((resolve) => { brandLogo.onload = brandLogo.onerror = resolve; });
+    if (brandLogo.naturalWidth) context.drawImage(brandLogo, 58, 15, 90, 90);
+    context.font = "600 46px Georgia";
+    let brandX = 168;
+    context.fillStyle = "#fff8e8"; context.fillText("Derm", brandX, 76); brandX += context.measureText("Derm").width;
+    context.fillStyle = "#f2be38"; context.fillText("Path", brandX, 76); brandX += context.measureText("Path ").width;
+    context.fillStyle = "#31bf70"; context.fillText("Q", brandX, 76); brandX += context.measureText("Q").width;
+    context.fillStyle = "#4f94da"; context.font = "italic 600 46px Georgia"; context.fillText("Maker", brandX, 76);
     context.fillStyle = "#152d52"; context.font = "600 62px Georgia";
     const words = form.title.trim().split(/\s+/); let line = "", y = 230;
     for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 970) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
