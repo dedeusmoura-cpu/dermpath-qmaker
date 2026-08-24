@@ -1469,13 +1469,13 @@ export default function Home() {
                 className={styles.exportSlide}
                 onClick={() => downloadSlideImage(challengeSlide)}
               >
-                {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
+                {en ? "Download image with QR Code" : "Baixar imagem com QR Code"}
               </button>
               <button
                 className={styles.exportSlide}
                 onClick={() => downloadSlidePowerPoint(challengeSlide)}
               >
-                {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
+                {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
               </button>
               <button
                 className={styles.back}
@@ -1504,6 +1504,14 @@ export default function Home() {
             )}
             <article className={styles.results}>
               <span className={styles.kicker}>{en ? "TROPHY" : "TROFÉU"}</span>
+              <div className={styles.resultExportActions}>
+                <button className={styles.exportSlide} onClick={() => downloadSlideImage(challengeSlide)}>
+                  {en ? "Download image with QR Code" : "Baixar imagem com QR Code"}
+                </button>
+                <button className={styles.exportSlide} onClick={() => downloadSlidePowerPoint(challengeSlide)}>
+                  {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
+                </button>
+              </div>
               {trophyWinners.length ? (
                 <div
                   key={`${hasPerfectScore}-${trophyWinners.length}`}
@@ -1888,10 +1896,10 @@ export default function Home() {
                   : "Criar quiz e QR Code"}
             </button>
             <button type="button" className={styles.exportSlide} onClick={() => downloadSlideImage()}>
-              {en ? "Download 16:9 image with QR Code" : "Baixar imagem 16:9 com QR Code"}
+              {en ? "Download image with QR Code" : "Baixar imagem com QR Code"}
             </button>
             <button type="button" className={styles.exportSlide} onClick={() => downloadSlidePowerPoint()}>
-              {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
+              {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
             </button>
             {message && <p className={styles.error}>{message}</p>}
           </form>
@@ -2004,13 +2012,13 @@ export default function Home() {
                 className={styles.exportSlide}
                 onClick={() => downloadSlideImage(resultSlide)}
               >
-                {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
+                {en ? "Download image with QR Code" : "Baixar imagem com QR Code"}
               </button>
               <button
                 className={styles.exportSlide}
                 onClick={() => downloadSlidePowerPoint(resultSlide)}
               >
-                {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
+                {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
               </button>
               <button
                 className={styles.back}
@@ -2049,6 +2057,14 @@ export default function Home() {
             {showQr && <QrPanel url={url} panelUrl={panelUrl} alt="QR Code" en={en} />}
             <article className={styles.results}>
               <span className={styles.kicker}>{resultLabel}</span>
+              <div className={styles.resultExportActions}>
+                <button className={styles.exportSlide} onClick={() => downloadSlideImage(resultSlide)}>
+                  {en ? "Download image with QR Code" : "Baixar imagem com QR Code"}
+                </button>
+                <button className={styles.exportSlide} onClick={() => downloadSlidePowerPoint(resultSlide)}>
+                  {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
+                </button>
+              </div>
               <div
                 ref={results.question.kind === "cloud" ? cloudResultRef : undefined}
                 className={`${styles.cloudFullscreenTarget} ${cloudFullscreen ? styles.cloudFullscreenActive : ""}`}
