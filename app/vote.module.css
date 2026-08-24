@@ -27,3 +27,5 @@
 .formatOptions>div{grid-template-columns:repeat(4,1fr)}.trophyFormat{border:1px solid #e7d8b5!important;background:#fff9e8!important}.trophyFormat .formatIcon{color:#b88414}@media(max-width:850px){.formatOptions>div{grid-template-columns:repeat(2,1fr)}}@media(max-width:650px){.formatOptions>div{grid-template-columns:1fr}}
 
 .panelLink{grid-column:1/-1;display:grid;gap:4px;padding:10px 12px;border:1px solid #dccb9f;border-radius:10px;background:#fffefa;color:#183b67}.panelLink b{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#896f2d}.panelLink a{overflow-wrap:anywhere;color:#345780;font-size:12px;font-weight:700;text-decoration:underline}
+
+.quizLoading{display:grid;min-height:360px;place-content:center;justify-items:center;gap:12px;padding:36px;color:#183b67;text-align:center}.quizLoading .spinner{width:26px;height:26px;margin:0;border-width:3px}.quizLoading strong{font-size:20px}.quizLoading span{color:#66758a;font-size:14px}

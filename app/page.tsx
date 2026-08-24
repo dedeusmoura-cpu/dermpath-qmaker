@@ -1931,6 +1931,29 @@ export default function Home() {
       </main>
     );
 
+  if (
+    mode === "vote" ||
+    mode === "panel" ||
+    mode === "challenge" ||
+    mode === "challenge-panel"
+  )
+    return (
+      <main className={styles.shell}>
+        <AppHeader language={language} setLanguage={setLanguage} onBack={goHome} />
+        <section className={styles.card}>
+          <div className={styles.quizLoading} role="status">
+            <i className={styles.spinner} />
+            <strong>{en ? "Loading quiz…" : "Carregando quiz…"}</strong>
+            <span>
+              {en
+                ? "Preparing your question and image."
+                : "Preparando sua pergunta e imagem."}
+            </span>
+          </div>
+        </section>
+      </main>
+    );
+
   return (
     <main className={styles.shell}>
       <AppHeader language={language} setLanguage={setLanguage} onBack={goBack} />
