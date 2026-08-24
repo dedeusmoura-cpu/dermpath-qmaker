@@ -677,10 +677,8 @@ export default function Home() {
     if (qr.naturalWidth) context.drawImage(qr, 1160, 335, 280, 280);
     context.font = "24px Arial"; context.fillStyle = "#526278";
     context.fillText(en ? "Answer the quiz" : "Responda ao quiz", 1300, 675);
-    context.font = "700 18px Arial"; context.fillStyle = "#7c5d1d";
-    context.fillText(en ? "Teacher panel:" : "Painel do professor:", 1300, 720);
-    context.font = "16px Arial"; context.fillStyle = "#526278";
-    context.fillText(details.panelUrl, 1300, 750);
+    context.font = "700 22px Arial"; context.fillStyle = "#7c5d1d";
+    context.fillText(en ? "Response Panel" : "Painel de Respostas", 1300, 735);
     context.textAlign = "left";
     return { canvas, panelUrl: details.panelUrl };
   }
@@ -700,10 +698,10 @@ export default function Home() {
     pptx.subject = "Quiz com QR Code";
     const slide = pptx.addSlide();
     slide.addImage({ data: rendered.canvas.toDataURL("image/png"), x: 0, y: 0, w: 13.333, h: 7.5 });
-    slide.addText(rendered.panelUrl, {
-      x: 9.31, y: 6.17, w: 2.95, h: 0.2,
-      fontFace: "Arial", fontSize: 6.5, color: "526278",
-      margin: 0, breakLine: false, hyperlink: { url: rendered.panelUrl },
+    slide.addText(en ? "Response Panel" : "Painel de Respostas", {
+      x: 9.3, y: 6.02, w: 3.08, h: 0.35,
+      fontFace: "Arial", fontSize: 13, bold: true, color: "7C5D1D",
+      align: "center", margin: 0, hyperlink: { url: rendered.panelUrl },
     });
     await pptx.writeFile({ fileName: "quiz-16x9.pptx" });
   }
@@ -1416,8 +1414,8 @@ export default function Home() {
             <div>
               <span className={styles.kicker}>
                 {en
-                  ? "TROPHY CHALLENGE · TEACHER PANEL"
-                  : "DESAFIO TROFÉU · PAINEL DO PROFESSOR"}
+                  ? "TROPHY CHALLENGE · RESPONSE PANEL"
+                  : "DESAFIO TROFÉU · PAINEL DE RESPOSTAS"}
               </span>
               <h1>{challenge.title}</h1>
               <p>
@@ -1941,7 +1939,7 @@ export default function Home() {
           <header>
             <div>
               <span className={styles.kicker}>
-                {en ? "TEACHER PANEL" : "PAINEL DO PROFESSOR"} · {textKind}
+                {en ? "RESPONSE PANEL" : "PAINEL DE RESPOSTAS"} · {textKind}
               </span>
               <h1>{results.question.title}</h1>
               <p
@@ -2148,8 +2146,8 @@ export default function Home() {
             <h1>{en ? "Previous quizzes." : "Quizzes anteriores."}</h1>
             <p>
               {en
-                ? "Open a teacher panel and its QR Code."
-                : "Abra o painel do professor e o QR Code de cada quiz."}
+                ? "Open the response panel and its QR Code."
+                : "Abra o painel de respostas e o QR Code de cada quiz."}
             </p>
           </div>
           <button className={styles.primary} onClick={startCreate}>
@@ -2250,8 +2248,8 @@ export default function Home() {
             </h1>
             <p>
               {en
-                ? "Open a challenge's teacher panel to check scores or add its QR Code again."
-                : "Abra o painel do professor de um desafio para conferir a pontuação ou pegar o QR Code de novo."}
+                ? "Open a challenge response panel to check scores or add its QR Code again."
+                : "Abra o painel de respostas de um desafio para conferir a pontuação ou pegar o QR Code de novo."}
             </p>
           </div>
         </header>
