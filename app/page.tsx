@@ -1252,9 +1252,6 @@ export default function Home() {
                   ? "Create challenge and QR Code"
                   : "Criar desafio e QR Code"}
             </button>
-            <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
-              {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
-            </button>
             {challengeMessage && (
               <p className={styles.error}>{challengeMessage}</p>
             )}
@@ -1713,6 +1710,9 @@ export default function Home() {
                 : en
                   ? "Create quiz and QR Code"
                   : "Criar quiz e QR Code"}
+            </button>
+            <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
+              {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
             </button>
             {message && <p className={styles.error}>{message}</p>}
           </form>
