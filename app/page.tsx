@@ -683,27 +683,56 @@ export default function Home() {
     return { canvas, panelUrl: details.panelUrl };
   }
   async function downloadSlideImage(details = currentFormSlide()) {
-    const slide = await createSlideCanvas(details);
-    if (!slide) return;
-    const { canvas } = slide;
-    const link = document.createElement("a"); link.download = "quiz-16x9.png"; link.href = canvas.toDataURL("image/png"); link.click();
+    const preview = window.open("", "_blank");
+    if (preview) preview.document.write("<p>Gerando imagem…</p>");
+    try {
+      const slide = await createSlideCanvas(details);
+      if (!slide) { preview?.close(); return; }
+      const imageUrl = slide.canvas.toDataURL("image/png");
+      if (preview) {
+        preview.location.replace(imageUrl);
+      } else {
+        const link = document.createElement("a");
+        link.download = "quiz-16x9.png"; link.href = imageUrl; link.click();
+      }
+    } catch {
+      preview?.close();
+      setMessage(en ? "Could not generate the image. Please try again." : "Não foi possível gerar a imagem. Tente novamente.");
+    }
   }
   async function downloadSlidePowerPoint(details = currentFormSlide()) {
-    const rendered = await createSlideCanvas(details);
-    if (!rendered) return;
-    const { default: PptxGenJS } = await import("pptxgenjs");
-    const pptx = new PptxGenJS();
-    pptx.layout = "LAYOUT_WIDE";
-    pptx.author = "DermPath QMaker";
-    pptx.subject = "Quiz com QR Code";
-    const slide = pptx.addSlide();
-    slide.addImage({ data: rendered.canvas.toDataURL("image/png"), x: 0, y: 0, w: 13.333, h: 7.5 });
-    slide.addText(en ? "Response Panel" : "Painel de Respostas", {
-      x: 9.3, y: 6.02, w: 3.08, h: 0.35,
-      fontFace: "Arial", fontSize: 13, bold: true, color: "7C5D1D",
-      align: "center", margin: 0, hyperlink: { url: rendered.panelUrl },
-    });
-    await pptx.writeFile({ fileName: "quiz-16x9.pptx" });
+    const downloadWindow = window.open("", "_blank");
+    if (downloadWindow) downloadWindow.document.write("<p>Gerando PowerPoint…</p>");
+    try {
+      const rendered = await createSlideCanvas(details);
+      if (!rendered) { downloadWindow?.close(); return; }
+      const { default: PptxGenJS } = await import("pptxgenjs");
+      const pptx = new PptxGenJS();
+      pptx.layout = "LAYOUT_WIDE";
+      pptx.author = "DermPath QMaker";
+      pptx.subject = "Quiz com QR Code";
+      const slide = pptx.addSlide();
+      slide.addImage({ data: rendered.canvas.toDataURL("image/png"), x: 0, y: 0, w: 13.333, h: 7.5 });
+      slide.addText(en ? "Response Panel" : "Painel de Respostas", {
+        x: 9.3, y: 6.02, w: 3.08, h: 0.35,
+        fontFace: "Arial", fontSize: 13, bold: true, color: "7C5D1D",
+        align: "center", margin: 0, hyperlink: { url: rendered.panelUrl },
+      });
+      const file = await pptx.write({ outputType: "blob" });
+      const fileUrl = URL.createObjectURL(file as Blob);
+      if (downloadWindow) {
+        downloadWindow.document.open();
+        downloadWindow.document.write(`<p><a id="download" href="${fileUrl}" download="quiz-16x9.pptx">Baixar PowerPoint 16:9</a></p>`);
+        downloadWindow.document.close();
+        downloadWindow.document.getElementById("download")?.click();
+      } else {
+        const link = document.createElement("a");
+        link.download = "quiz-16x9.pptx"; link.href = fileUrl; link.click();
+      }
+    } catch {
+      downloadWindow?.close();
+      setMessage(en ? "Could not generate the PowerPoint. Please try again." : "Não foi possível gerar o PowerPoint. Tente novamente.");
+    }
   }
   const loadQuestion = useCallback(async (questionId: string) => {
     const response = await fetch(`/api/questions/${questionId}`);
