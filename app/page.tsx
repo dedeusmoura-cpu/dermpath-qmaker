@@ -631,7 +631,7 @@ export default function Home() {
       panelUrl: `${location.origin}?q=${editingId}&painel=1`,
     };
   }
-  async function createSlideCanvas(details: SlideExportDetails | null) {
+  async function createSlideCanvas(details: SlideExportDetails | null, includePanelLabel = true) {
     if (!details) {
       setMessage(
         en
@@ -677,8 +677,10 @@ export default function Home() {
     if (qr.naturalWidth) context.drawImage(qr, 1160, 335, 280, 280);
     context.font = "24px Arial"; context.fillStyle = "#526278";
     context.fillText(en ? "Answer the quiz" : "Responda ao quiz", 1300, 675);
-    context.font = "700 22px Arial"; context.fillStyle = "#7c5d1d";
-    context.fillText(en ? "Response Panel" : "Painel de Respostas", 1300, 735);
+    if (includePanelLabel) {
+      context.font = "700 22px Arial"; context.fillStyle = "#7c5d1d";
+      context.fillText(en ? "Response Panel" : "Painel de Respostas", 1300, 735);
+    }
     context.textAlign = "left";
     return { canvas, panelUrl: details.panelUrl };
   }
@@ -702,7 +704,7 @@ export default function Home() {
   }
   async function downloadSlidePowerPoint(details = currentFormSlide()) {
     try {
-      const rendered = await createSlideCanvas(details);
+      const rendered = await createSlideCanvas(details, false);
       if (!rendered) return;
       const { default: PptxGenJS } = await import("pptxgenjs");
       const pptx = new PptxGenJS();
