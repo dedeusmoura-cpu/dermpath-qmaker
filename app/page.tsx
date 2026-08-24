@@ -568,6 +568,14 @@ export default function Home() {
     else location.href = "?";
   }
   async function downloadSlideImage() {
+    if (!editingId) {
+      setMessage(
+        en
+          ? "Save the quiz first to generate its 16:9 image with a QR Code."
+          : "Salve o quiz primeiro para gerar a imagem 16:9 com QR Code.",
+      );
+      return;
+    }
     const canvas = document.createElement("canvas");
     canvas.width = 1600; canvas.height = 900;
     const context = canvas.getContext("2d");
@@ -577,14 +585,27 @@ export default function Home() {
     context.fillStyle = "#fff8e8"; context.font = "700 34px Arial"; context.fillText("DermPath QMaker", 72, 73);
     context.fillStyle = "#152d52"; context.font = "600 62px Georgia";
     const words = form.title.trim().split(/\s+/); let line = "", y = 230;
-    for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 1380) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
+    for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 970) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
     context.fillText(line, 92, y); y += 72;
     context.font = "32px Arial"; context.fillStyle = "#526278"; context.fillText(form.stem || (en ? "Question" : "Pergunta"), 92, y);
     if (form.imageUrl) {
       const image = new Image(); image.crossOrigin = "anonymous"; image.src = form.imageUrl;
       await new Promise((resolve) => { image.onload = image.onerror = resolve; });
-      if (image.naturalWidth) { const scale = Math.min(900 / image.naturalWidth, 430 / image.naturalHeight); context.drawImage(image, 92, y + 55, image.naturalWidth * scale, image.naturalHeight * scale); }
+      if (image.naturalWidth) { const scale = Math.min(860 / image.naturalWidth, 430 / image.naturalHeight); context.drawImage(image, 92, y + 55, image.naturalWidth * scale, image.naturalHeight * scale); }
     }
+    const responseUrl = `${location.origin}?q=${editingId}`;
+    const qr = new Image();
+    qr.crossOrigin = "anonymous";
+    qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=12&data=${encodeURIComponent(responseUrl)}`;
+    await new Promise((resolve) => { qr.onload = qr.onerror = resolve; });
+    context.fillStyle = "#fff"; context.fillRect(1115, 245, 370, 530);
+    context.strokeStyle = "#dec56d"; context.lineWidth = 3; context.strokeRect(1115, 245, 370, 530);
+    context.fillStyle = "#152d52"; context.font = "700 30px Arial";
+    context.textAlign = "center"; context.fillText("Escaneie o QR Code", 1300, 305);
+    if (qr.naturalWidth) context.drawImage(qr, 1160, 335, 280, 280);
+    context.font = "24px Arial"; context.fillStyle = "#526278";
+    context.fillText(en ? "Answer the quiz" : "Responda ao quiz", 1300, 675);
+    context.textAlign = "left";
     const link = document.createElement("a"); link.download = "quiz-16x9.png"; link.href = canvas.toDataURL("image/png"); link.click();
   }
   const loadQuestion = useCallback(async (questionId: string) => {
@@ -1712,7 +1733,7 @@ export default function Home() {
                   : "Criar quiz e QR Code"}
             </button>
             <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
-              {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
+              {en ? "Download 16:9 image with QR Code" : "Baixar imagem 16:9 com QR Code"}
             </button>
             {message && <p className={styles.error}>{message}</p>}
           </form>
