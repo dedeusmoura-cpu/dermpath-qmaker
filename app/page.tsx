@@ -571,6 +571,8 @@ export default function Home() {
     correctAnswer: 0,
   });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const cloudResultRef = useRef<HTMLDivElement>(null);
+  const [cloudFullscreen, setCloudFullscreen] = useState(false);
   const query = useMemo(
     () =>
       typeof window !== "undefined"
@@ -621,6 +623,22 @@ export default function Home() {
     if (window.history.length > 1) window.history.back();
     else location.href = "?";
   }
+  function toggleCloudFullscreen() {
+    const target = cloudResultRef.current;
+    if (!target) return;
+    if (document.fullscreenElement === target) {
+      void document.exitFullscreen();
+      return;
+    }
+    target.requestFullscreen().catch(() => {
+      setMessage(en ? "Could not open full-screen view." : "Não foi possível abrir a visualização em tela inteira.");
+    });
+  }
+  useEffect(() => {
+    const updateFullscreenState = () => setCloudFullscreen(document.fullscreenElement === cloudResultRef.current);
+    document.addEventListener("fullscreenchange", updateFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
+  }, []);
   function currentFormSlide(): SlideExportDetails | null {
     if (!editingId) return null;
     return {
@@ -1994,6 +2012,17 @@ export default function Home() {
               >
                 {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
               </button>
+              {results.question.kind === "cloud" && (
+                <button className={styles.exportSlide} onClick={toggleCloudFullscreen}>
+                  {cloudFullscreen
+                    ? en
+                      ? "Exit full screen"
+                      : "Sair da tela inteira"
+                    : en
+                      ? "View full screen"
+                      : "Visualizar tela inteira"}
+                </button>
+              )}
               <button
                 className={styles.back}
                 onClick={() => setShowQr(!showQr)}
@@ -2031,19 +2060,26 @@ export default function Home() {
             {showQr && <QrPanel url={url} panelUrl={panelUrl} alt="QR Code" en={en} />}
             <article className={styles.results}>
               <span className={styles.kicker}>{resultLabel}</span>
-              <div
-                key={showAnswers ? "shown" : "hidden"}
-                className={styles.revealFade}
-              >
+              <div ref={results.question.kind === "cloud" ? cloudResultRef : undefined} className={styles.cloudFullscreenTarget}>
+                {results.question.kind === "cloud" && (
+                  <button className={styles.fullscreenExit} onClick={toggleCloudFullscreen}>
+                    {en ? "Exit full screen" : "Sair da tela inteira"}
+                  </button>
+                )}
+                <div
+                  key={showAnswers ? "shown" : "hidden"}
+                  className={styles.revealFade}
+                >
                 {showAnswers ? (
                   resultContent
                 ) : (
                   <div className={styles.resultsHidden}>
                     {en
                       ? "Responses are hidden until you reveal them."
-                      : "As respostas estão ocultas até você revelá-las."}
+                    : "As respostas estão ocultas até você revelá-las."}
                   </div>
                 )}
+                </div>
               </div>
             </article>
           </div>
