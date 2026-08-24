@@ -31,4 +31,4 @@
 .quizLoading{display:grid;min-height:360px;place-content:center;justify-items:center;gap:12px;padding:36px;color:#183b67;text-align:center}.quizLoading .spinner{width:26px;height:26px;margin:0;border-width:3px}.quizLoading strong{font-size:20px}.quizLoading span{color:#66758a;font-size:14px}
 
 .historyLoading{display:flex;align-items:center;gap:10px;min-height:72px;padding:18px;color:#526278;font-weight:700}.historyLoading .spinner{margin:0}
-.exportSlide{margin-left:10px;border:1px solid #d3a73b;border-radius:10px;padding:13px 19px;background:#fff9e9;color:#7c5d1d;font-weight:800;cursor:pointer}
+.exportSlide{margin-left:10px;border:1px solid #d3a73b;border-radius:10px;padding:13px 19px;background:#fff9e9;color:#7c5d1d;font-weight:800;cursor:pointer}.actions .exportSlide{margin-left:0;padding:10px 12px;font-size:12px}@media(max-width:650px){.actions .exportSlide{width:100%}}

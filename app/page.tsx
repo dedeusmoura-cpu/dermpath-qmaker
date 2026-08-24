@@ -48,6 +48,13 @@ type ChallengeResults = {
     total: number;
   }[];
 };
+type SlideExportDetails = {
+  title: string;
+  stem: string;
+  imageUrl?: string | null;
+  responseUrl: string;
+  panelUrl: string;
+};
 
 const letters = ["a", "b", "c", "d", "e", "f"];
 const dermPathUrl = "https://dermpath-navigator.vercel.app/";
@@ -614,8 +621,18 @@ export default function Home() {
     if (window.history.length > 1) window.history.back();
     else location.href = "?";
   }
-  async function createSlideCanvas() {
-    if (!editingId) {
+  function currentFormSlide(): SlideExportDetails | null {
+    if (!editingId) return null;
+    return {
+      title: form.title,
+      stem: form.stem,
+      imageUrl: form.imageUrl,
+      responseUrl: `${location.origin}?q=${editingId}`,
+      panelUrl: `${location.origin}?q=${editingId}&painel=1`,
+    };
+  }
+  async function createSlideCanvas(details: SlideExportDetails | null) {
+    if (!details) {
       setMessage(
         en
           ? "Save the quiz first to generate its 16:9 image with a QR Code."
@@ -640,19 +657,18 @@ export default function Home() {
     context.fillStyle = "#31bf70"; context.fillText("Q", brandX, 76); brandX += context.measureText("Q").width;
     context.fillStyle = "#4f94da"; context.font = "italic 600 46px Georgia"; context.fillText("Maker", brandX, 76);
     context.fillStyle = "#152d52"; context.font = "600 62px Georgia";
-    const words = form.title.trim().split(/\s+/); let line = "", y = 230;
+    const words = details.title.trim().split(/\s+/); let line = "", y = 230;
     for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 970) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
     context.fillText(line, 92, y); y += 72;
-    context.font = "32px Arial"; context.fillStyle = "#526278"; context.fillText(form.stem || (en ? "Question" : "Pergunta"), 92, y);
-    if (form.imageUrl) {
-      const image = new Image(); image.crossOrigin = "anonymous"; image.src = form.imageUrl;
+    context.font = "32px Arial"; context.fillStyle = "#526278"; context.fillText(details.stem || (en ? "Question" : "Pergunta"), 92, y);
+    if (details.imageUrl) {
+      const image = new Image(); image.crossOrigin = "anonymous"; image.src = details.imageUrl;
       await new Promise((resolve) => { image.onload = image.onerror = resolve; });
       if (image.naturalWidth) { const scale = Math.min(860 / image.naturalWidth, 430 / image.naturalHeight); context.drawImage(image, 92, y + 55, image.naturalWidth * scale, image.naturalHeight * scale); }
     }
-    const responseUrl = `${location.origin}?q=${editingId}`;
     const qr = new Image();
     qr.crossOrigin = "anonymous";
-    qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=12&data=${encodeURIComponent(responseUrl)}`;
+    qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=440x440&margin=12&data=${encodeURIComponent(details.responseUrl)}`;
     await new Promise((resolve) => { qr.onload = qr.onerror = resolve; });
     context.fillStyle = "#fff"; context.fillRect(1115, 245, 370, 530);
     context.strokeStyle = "#dec56d"; context.lineWidth = 3; context.strokeRect(1115, 245, 370, 530);
@@ -661,22 +677,21 @@ export default function Home() {
     if (qr.naturalWidth) context.drawImage(qr, 1160, 335, 280, 280);
     context.font = "24px Arial"; context.fillStyle = "#526278";
     context.fillText(en ? "Answer the quiz" : "Responda ao quiz", 1300, 675);
-    const panelUrl = `${location.origin}?q=${editingId}&painel=1`;
     context.font = "700 18px Arial"; context.fillStyle = "#7c5d1d";
     context.fillText(en ? "Teacher panel:" : "Painel do professor:", 1300, 720);
     context.font = "16px Arial"; context.fillStyle = "#526278";
-    context.fillText(panelUrl, 1300, 750);
+    context.fillText(details.panelUrl, 1300, 750);
     context.textAlign = "left";
-    return { canvas, panelUrl };
+    return { canvas, panelUrl: details.panelUrl };
   }
-  async function downloadSlideImage() {
-    const slide = await createSlideCanvas();
+  async function downloadSlideImage(details = currentFormSlide()) {
+    const slide = await createSlideCanvas(details);
     if (!slide) return;
     const { canvas } = slide;
     const link = document.createElement("a"); link.download = "quiz-16x9.png"; link.href = canvas.toDataURL("image/png"); link.click();
   }
-  async function downloadSlidePowerPoint() {
-    const rendered = await createSlideCanvas();
+  async function downloadSlidePowerPoint(details = currentFormSlide()) {
+    const rendered = await createSlideCanvas(details);
     if (!rendered) return;
     const { default: PptxGenJS } = await import("pptxgenjs");
     const pptx = new PptxGenJS();
@@ -1368,6 +1383,12 @@ export default function Home() {
   if (mode === "challenge-panel" && challenge && challengeResults) {
     const joinUrl = `${location.origin}?trofeu=${challenge.id}`;
     const panelUrl = `${location.origin}?trofeu=${challenge.id}&painel=1`;
+    const challengeSlide: SlideExportDetails = {
+      title: challenge.title,
+      stem: en ? "Trophy challenge" : "Desafio Troféu",
+      responseUrl: joinUrl,
+      panelUrl,
+    };
     const perfectWinners = challengeResults.ranking.filter(
       (entry) =>
         challengeResults.totalQuestions > 0 &&
@@ -1406,6 +1427,18 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.actions}>
+              <button
+                className={styles.exportSlide}
+                onClick={() => downloadSlideImage(challengeSlide)}
+              >
+                {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
+              </button>
+              <button
+                className={styles.exportSlide}
+                onClick={() => downloadSlidePowerPoint(challengeSlide)}
+              >
+                {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
+              </button>
               <button
                 className={styles.back}
                 onClick={() => setShowQr(!showQr)}
@@ -1831,6 +1864,13 @@ export default function Home() {
   if (mode === "panel" && results) {
     const url = `${location.origin}?q=${results.question.id}`;
     const panelUrl = `${location.origin}?q=${results.question.id}&painel=1`;
+    const resultSlide: SlideExportDetails = {
+      title: results.question.title,
+      stem: results.question.stem,
+      imageUrl: results.question.imageUrl,
+      responseUrl: url,
+      panelUrl,
+    };
     const textKind =
       results.question.kind === "cloud"
         ? en
@@ -1922,6 +1962,18 @@ export default function Home() {
               </p>
             </div>
             <div className={styles.actions}>
+              <button
+                className={styles.exportSlide}
+                onClick={() => downloadSlideImage(resultSlide)}
+              >
+                {en ? "Download 16:9 image" : "Baixar imagem 16:9"}
+              </button>
+              <button
+                className={styles.exportSlide}
+                onClick={() => downloadSlidePowerPoint(resultSlide)}
+              >
+                {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
+              </button>
               <button
                 className={styles.back}
                 onClick={() => setShowQr(!showQr)}
