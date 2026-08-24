@@ -701,11 +701,9 @@ export default function Home() {
     }
   }
   async function downloadSlidePowerPoint(details = currentFormSlide()) {
-    const downloadWindow = window.open("", "_blank");
-    if (downloadWindow) downloadWindow.document.write("<p>Gerando PowerPoint…</p>");
     try {
       const rendered = await createSlideCanvas(details);
-      if (!rendered) { downloadWindow?.close(); return; }
+      if (!rendered) return;
       const { default: PptxGenJS } = await import("pptxgenjs");
       const pptx = new PptxGenJS();
       pptx.layout = "LAYOUT_WIDE";
@@ -718,19 +716,12 @@ export default function Home() {
         fontFace: "Arial", fontSize: 13, bold: true, color: "7C5D1D",
         align: "center", margin: 0, hyperlink: { url: rendered.panelUrl },
       });
-      const file = await pptx.write({ outputType: "blob" });
-      const fileUrl = URL.createObjectURL(file as Blob);
-      if (downloadWindow) {
-        downloadWindow.document.open();
-        downloadWindow.document.write(`<p><a id="download" href="${fileUrl}" download="quiz-16x9.pptx">Baixar PowerPoint 16:9</a></p>`);
-        downloadWindow.document.close();
-        downloadWindow.document.getElementById("download")?.click();
-      } else {
-        const link = document.createElement("a");
-        link.download = "quiz-16x9.pptx"; link.href = fileUrl; link.click();
-      }
-    } catch {
-      downloadWindow?.close();
+      // Let PptxGenJS perform the browser download itself.  Its native browser
+      // writer produces a compatible Blob and avoids cross-window Blob URLs,
+      // which can fail silently in Chromium and Safari.
+      await pptx.writeFile({ fileName: "quiz-16x9.pptx" });
+    } catch (error) {
+      console.error("PowerPoint export failed", error);
       setMessage(en ? "Could not generate the PowerPoint. Please try again." : "Não foi possível gerar o PowerPoint. Tente novamente.");
     }
   }
