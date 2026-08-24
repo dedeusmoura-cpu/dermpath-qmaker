@@ -614,14 +614,14 @@ export default function Home() {
     if (window.history.length > 1) window.history.back();
     else location.href = "?";
   }
-  async function downloadSlideImage() {
+  async function createSlideCanvas() {
     if (!editingId) {
       setMessage(
         en
           ? "Save the quiz first to generate its 16:9 image with a QR Code."
           : "Salve o quiz primeiro para gerar a imagem 16:9 com QR Code.",
       );
-      return;
+      return null;
     }
     const canvas = document.createElement("canvas");
     canvas.width = 1600; canvas.height = 900;
@@ -661,8 +661,36 @@ export default function Home() {
     if (qr.naturalWidth) context.drawImage(qr, 1160, 335, 280, 280);
     context.font = "24px Arial"; context.fillStyle = "#526278";
     context.fillText(en ? "Answer the quiz" : "Responda ao quiz", 1300, 675);
+    const panelUrl = `${location.origin}?q=${editingId}&painel=1`;
+    context.font = "700 18px Arial"; context.fillStyle = "#7c5d1d";
+    context.fillText(en ? "Teacher panel:" : "Painel do professor:", 1300, 720);
+    context.font = "16px Arial"; context.fillStyle = "#526278";
+    context.fillText(panelUrl, 1300, 750);
     context.textAlign = "left";
+    return { canvas, panelUrl };
+  }
+  async function downloadSlideImage() {
+    const slide = await createSlideCanvas();
+    if (!slide) return;
+    const { canvas } = slide;
     const link = document.createElement("a"); link.download = "quiz-16x9.png"; link.href = canvas.toDataURL("image/png"); link.click();
+  }
+  async function downloadSlidePowerPoint() {
+    const rendered = await createSlideCanvas();
+    if (!rendered) return;
+    const { default: PptxGenJS } = await import("pptxgenjs");
+    const pptx = new PptxGenJS();
+    pptx.layout = "LAYOUT_WIDE";
+    pptx.author = "DermPath QMaker";
+    pptx.subject = "Quiz com QR Code";
+    const slide = pptx.addSlide();
+    slide.addImage({ data: rendered.canvas.toDataURL("image/png"), x: 0, y: 0, w: 13.333, h: 7.5 });
+    slide.addText(rendered.panelUrl, {
+      x: 9.31, y: 6.17, w: 2.95, h: 0.2,
+      fontFace: "Arial", fontSize: 6.5, color: "526278",
+      margin: 0, breakLine: false, hyperlink: { url: rendered.panelUrl },
+    });
+    await pptx.writeFile({ fileName: "quiz-16x9.pptx" });
   }
   const loadQuestion = useCallback(async (questionId: string) => {
     const response = await fetch(`/api/questions/${questionId}`);
@@ -1790,6 +1818,9 @@ export default function Home() {
             </button>
             <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
               {en ? "Download 16:9 image with QR Code" : "Baixar imagem 16:9 com QR Code"}
+            </button>
+            <button type="button" className={styles.exportSlide} onClick={downloadSlidePowerPoint}>
+              {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
             </button>
             {message && <p className={styles.error}>{message}</p>}
           </form>
