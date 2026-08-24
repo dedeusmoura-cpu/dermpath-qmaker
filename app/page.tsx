@@ -2012,17 +2012,6 @@ export default function Home() {
               >
                 {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
               </button>
-              {results.question.kind === "cloud" && (
-                <button className={styles.exportSlide} onClick={toggleCloudFullscreen}>
-                  {cloudFullscreen
-                    ? en
-                      ? "Exit full screen"
-                      : "Sair da tela inteira"
-                    : en
-                      ? "View full screen"
-                      : "Visualizar tela inteira"}
-                </button>
-              )}
               <button
                 className={styles.back}
                 onClick={() => setShowQr(!showQr)}
@@ -2062,8 +2051,15 @@ export default function Home() {
               <span className={styles.kicker}>{resultLabel}</span>
               <div ref={results.question.kind === "cloud" ? cloudResultRef : undefined} className={styles.cloudFullscreenTarget}>
                 {results.question.kind === "cloud" && (
-                  <button className={styles.fullscreenExit} onClick={toggleCloudFullscreen}>
-                    {en ? "Exit full screen" : "Sair da tela inteira"}
+                  <button
+                    className={styles.cloudFullscreenToggle}
+                    onClick={toggleCloudFullscreen}
+                    aria-label={cloudFullscreen ? (en ? "Exit full screen" : "Sair da tela inteira") : (en ? "View full screen" : "Visualizar tela inteira")}
+                    title={cloudFullscreen ? (en ? "Exit full screen" : "Sair da tela inteira") : (en ? "View full screen" : "Visualizar tela inteira")}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8.5 4H4v4.5M15.5 4H20v4.5M20 15.5V20h-4.5M4 15.5V20h4.5" />
+                    </svg>
                   </button>
                 )}
                 <div
