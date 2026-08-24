@@ -624,21 +624,21 @@ export default function Home() {
     else location.href = "?";
   }
   function toggleCloudFullscreen() {
-    const target = cloudResultRef.current;
-    if (!target) return;
-    if (document.fullscreenElement === target) {
-      void document.exitFullscreen();
-      return;
-    }
-    target.requestFullscreen().catch(() => {
-      setMessage(en ? "Could not open full-screen view." : "Não foi possível abrir a visualização em tela inteira.");
-    });
+    setCloudFullscreen((visible) => !visible);
   }
   useEffect(() => {
-    const updateFullscreenState = () => setCloudFullscreen(document.fullscreenElement === cloudResultRef.current);
-    document.addEventListener("fullscreenchange", updateFullscreenState);
-    return () => document.removeEventListener("fullscreenchange", updateFullscreenState);
-  }, []);
+    if (!cloudFullscreen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setCloudFullscreen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [cloudFullscreen]);
   function currentFormSlide(): SlideExportDetails | null {
     if (!editingId) return null;
     return {
@@ -2049,7 +2049,10 @@ export default function Home() {
             {showQr && <QrPanel url={url} panelUrl={panelUrl} alt="QR Code" en={en} />}
             <article className={styles.results}>
               <span className={styles.kicker}>{resultLabel}</span>
-              <div ref={results.question.kind === "cloud" ? cloudResultRef : undefined} className={styles.cloudFullscreenTarget}>
+              <div
+                ref={results.question.kind === "cloud" ? cloudResultRef : undefined}
+                className={`${styles.cloudFullscreenTarget} ${cloudFullscreen ? styles.cloudFullscreenActive : ""}`}
+              >
                 {results.question.kind === "cloud" && (
                   <button
                     className={styles.cloudFullscreenToggle}
