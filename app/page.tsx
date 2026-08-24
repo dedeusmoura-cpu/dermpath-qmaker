@@ -1477,8 +1477,8 @@ export default function Home() {
                       kind: "cloud",
                       title: en ? "Word cloud" : "Nuvem de palavras",
                       text: en
-                        ? "Short answers, up to 25 characters."
-                        : "Respostas curtas, de até 25 caracteres.",
+                        ? "Repeated answers become larger in the cloud."
+                        : "Respostas repetidas ganham destaque na nuvem.",
                     },
                     {
                       kind: "open",
@@ -1667,8 +1667,8 @@ export default function Home() {
             {form.kind === "cloud" && (
               <p className={styles.helper}>
                 {en
-                  ? "Ask for one to three words. Repeated answers become larger in the cloud."
-                  : "Peça de uma a três palavras. Respostas repetidas ganham destaque na nuvem."}
+                  ? "There is no word or character limit. Repeated answers become larger in the cloud."
+                  : "Não há limite de palavras ou caracteres. Respostas repetidas ganham destaque na nuvem."}
               </p>
             )}
             {form.kind === "open" && (
@@ -1872,25 +1872,20 @@ export default function Home() {
               <>
                 <textarea
                   className={styles.openAnswer}
-                  maxLength={question.kind === "cloud" ? 25 : 180}
+                  maxLength={question.kind === "open" ? 180 : undefined}
                   disabled={voted}
                   value={openAnswer}
                   onChange={(event) => setOpenAnswer(event.target.value)}
                   placeholder={
                     question.kind === "cloud"
                       ? en
-                        ? "One to three words…"
-                        : "De uma a três palavras…"
+                        ? "Write your answer…"
+                        : "Escreva sua resposta…"
                       : en
                         ? "Write a longer response…"
                         : "Escreva uma resposta mais longa…"
                   }
                 />
-                {question.kind === "cloud" && (
-                  <small className={styles.characterHint}>
-                    {openAnswer.length}/25
-                  </small>
-                )}
               </>
             ) : (
               <div className={styles.choices}>

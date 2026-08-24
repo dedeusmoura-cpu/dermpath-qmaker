@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const db = getDb(); const [question] = await db.select().from(questions).where(eq(questions.id, questionId)).limit(1);
     const textAnswer = answerText?.trim().replace(/\s+/g, " ") ?? "";
     const invalidChoice = question?.kind === "choice" && (answerIndex === undefined || answerIndex < 0 || answerIndex >= JSON.parse(question.options).length);
-    const invalidText = question?.kind === "open" && (!textAnswer || textAnswer.length > 180) || question?.kind === "cloud" && (!textAnswer || textAnswer.length > 25);
+    const invalidText = question?.kind === "open" && (!textAnswer || textAnswer.length > 180) || question?.kind === "cloud" && !textAnswer;
     if (!question || !question.isOpen || invalidChoice || invalidText) return Response.json({ error: "Resposta inválida." }, { status: 400 });
     const prior = await db.select({ id: votes.id }).from(votes).where(and(eq(votes.questionId, questionId), eq(votes.deviceId, deviceId))).limit(1);
     if (prior.length) return withDeviceIdCookie(Response.json({ error: "Este aparelho já respondeu a esta questão." }, { status: 409 }), deviceId, isNew);
