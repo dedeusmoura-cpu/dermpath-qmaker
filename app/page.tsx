@@ -1867,10 +1867,10 @@ export default function Home() {
                   ? "Create quiz and QR Code"
                   : "Criar quiz e QR Code"}
             </button>
-            <button type="button" className={styles.exportSlide} onClick={downloadSlideImage}>
+            <button type="button" className={styles.exportSlide} onClick={() => downloadSlideImage()}>
               {en ? "Download 16:9 image with QR Code" : "Baixar imagem 16:9 com QR Code"}
             </button>
-            <button type="button" className={styles.exportSlide} onClick={downloadSlidePowerPoint}>
+            <button type="button" className={styles.exportSlide} onClick={() => downloadSlidePowerPoint()}>
               {en ? "Download PowerPoint 16:9" : "Baixar PowerPoint 16:9"}
             </button>
             {message && <p className={styles.error}>{message}</p>}
