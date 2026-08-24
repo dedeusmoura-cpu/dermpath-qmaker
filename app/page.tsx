@@ -484,9 +484,11 @@ export default function Home() {
   >("new");
   const [language, setLanguage] = useState<Language>("pt");
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
   const [challengeList, setChallengeList] = useState<
     { id: number; title: string; createdAt: string }[]
   >([]);
+  const [challengeListLoaded, setChallengeListLoaded] = useState(false);
   const [question, setQuestion] = useState<Question | null>(null);
   const [results, setResults] = useState<Results | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
@@ -549,10 +551,12 @@ export default function Home() {
   const load = useCallback(async () => {
     const response = await fetch("/api/questions");
     if (response.ok) setQuestions((await response.json()).questions);
+    setQuestionsLoaded(true);
   }, []);
   const loadChallengeList = useCallback(async () => {
     const response = await fetch("/api/challenges");
     if (response.ok) setChallengeList((await response.json()).challenges);
+    setChallengeListLoaded(true);
   }, []);
   function goToHistory() {
     location.href = "?historico=1";
@@ -1970,7 +1974,12 @@ export default function Home() {
           </button>
         </header>
         <div className={styles.list}>
-          {questions.length ? (
+          {!questionsLoaded ? (
+            <div className={styles.historyLoading} role="status">
+              <i className={styles.spinner} />
+              {en ? "Loading quizzes…" : "Carregando quizzes…"}
+            </div>
+          ) : questions.length ? (
             questions.map((item) => {
               const responseCount = item.responseCount ?? 0;
               const type =
@@ -2064,7 +2073,12 @@ export default function Home() {
           </div>
         </header>
         <div className={styles.list}>
-          {challengeList.length ? (
+          {!challengeListLoaded ? (
+            <div className={styles.historyLoading} role="status">
+              <i className={styles.spinner} />
+              {en ? "Loading trophy challenges…" : "Carregando desafios troféu…"}
+            </div>
+          ) : challengeList.length ? (
             challengeList.map((item) => (
               <div className={styles.listItem} key={item.id}>
                 <a href={`?trofeu=${item.id}&painel=1`}>
