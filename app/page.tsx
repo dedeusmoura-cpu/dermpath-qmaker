@@ -7,6 +7,7 @@ import {
   FormEvent,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -314,11 +315,115 @@ function Toast({
   );
 }
 
+type BubblePosition = { left: number; top: number };
+
 function BubbleCloud({ answers }: { answers: Word[] }) {
   const ranked = [...answers].sort((a, b) => b.count - a.count);
   const total = ranked.reduce((sum, answer) => sum + answer.count, 0) || 1;
   const max = Math.max(...ranked.map((answer) => answer.count), 1);
   const min = Math.min(...ranked.map((answer) => answer.count), max);
+  const cloudRef = useRef<HTMLDivElement>(null);
+  const bubbleRefs = useRef(new Map<string, HTMLDivElement>());
+  const [positions, setPositions] = useState<Record<string, BubblePosition>>({});
+  const layoutSignature = ranked
+    .map((answer) => `${answer.text}:${answer.count}`)
+    .join("|");
+
+  // Keep the word cloud lively without letting a label's centre sit so close
+  // to an edge that its actual text is clipped. The first pass uses a safe
+  // spiral; after the browser knows every label's dimensions, this pass fits
+  // the measured boxes inside the panel and avoids existing labels.
+  useLayoutEffect(() => {
+    const cloud = cloudRef.current;
+    if (!cloud || !ranked.length) return;
+
+    let frame = 0;
+    const positionBubbles = () => {
+      const bounds = cloud.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+
+      const placed: Array<{ x: number; y: number; width: number; height: number }> = [];
+      const next: Record<string, BubblePosition> = {};
+      const edge = 32;
+      const legendClearance = 76;
+
+      ranked.forEach((answer, index) => {
+        const bubble = bubbleRefs.current.get(answer.text);
+        if (!bubble) return;
+
+        const { width, height } = bubble.getBoundingClientRect();
+        const angle = index * 2.399963;
+        const radius =
+          ranked.length === 1
+            ? 0
+            : 8 + Math.sqrt(index / (ranked.length - 1)) * 32;
+        const targetX = bounds.width * (0.5 + (Math.cos(angle) * radius) / 100);
+        const targetY = bounds.height * (0.5 + (Math.sin(angle) * radius * 0.72) / 100);
+        const minX = edge + width / 2;
+        const maxX = Math.max(minX, bounds.width - edge - width / 2);
+        const minY = edge + height / 2;
+        const maxY = Math.max(minY, bounds.height - legendClearance - height / 2);
+        const clamp = (value: number, lower: number, upper: number) =>
+          Math.min(Math.max(value, lower), upper);
+        const overlaps = (x: number, y: number) =>
+          placed.some(
+            (other) =>
+              Math.abs(x - other.x) < (width + other.width) / 2 + 18 &&
+              Math.abs(y - other.y) < (height + other.height) / 2 + 18,
+          );
+
+        let x = clamp(targetX, minX, maxX);
+        let y = clamp(targetY, minY, maxY);
+        if (overlaps(x, y)) {
+          for (let attempt = 0; attempt < 120; attempt += 1) {
+            const ring = 18 + Math.floor(attempt / 10) * 24;
+            const candidateAngle = angle + attempt * 2.399963;
+            const candidateX = clamp(x + Math.cos(candidateAngle) * ring, minX, maxX);
+            const candidateY = clamp(y + Math.sin(candidateAngle) * ring, minY, maxY);
+            if (!overlaps(candidateX, candidateY)) {
+              x = candidateX;
+              y = candidateY;
+              break;
+            }
+          }
+        }
+
+        placed.push({ x, y, width, height });
+        next[answer.text] = {
+          left: (x / bounds.width) * 100,
+          top: (y / bounds.height) * 100,
+        };
+      });
+
+      setPositions((current) => {
+        const unchanged = ranked.every((answer) => {
+          const previous = current[answer.text];
+          const updated = next[answer.text];
+          return (
+            previous &&
+            updated &&
+            Math.abs(previous.left - updated.left) < 0.1 &&
+            Math.abs(previous.top - updated.top) < 0.1
+          );
+        });
+        return unchanged ? current : next;
+      });
+    };
+
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(positionBubbles);
+    };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(cloud);
+    bubbleRefs.current.forEach((bubble) => observer.observe(bubble));
+    schedule();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [layoutSignature]);
+
   // A response's visual weight should be comparable within the current class,
   // rather than shrink merely because the class has submitted few responses.
   const fontFloor = total <= 10 ? 34 : total <= 25 ? 30 : 26;
@@ -330,7 +435,7 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
     return "#1e4d8f"; // dark blue
   };
   return (
-    <div className={styles.cloud}>
+    <div className={styles.cloud} ref={cloudRef}>
       {ranked.map((answer, index) => {
         const intensity = max === min ? 0 : (answer.count - min) / (max - min);
         // A gentle curve spreads small-but-meaningful differences (for
@@ -346,16 +451,24 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
         const radius =
           ranked.length === 1
             ? 0
-            : 7 + Math.sqrt(index / (ranked.length - 1)) * 42;
+            : 8 + Math.sqrt(index / (ranked.length - 1)) * 32;
+        const position = positions[answer.text] ?? {
+          left: 50 + Math.cos(angle) * radius,
+          top: 50 + Math.sin(angle) * radius * 0.72,
+        };
         return (
           <div
             className={styles.bubble}
             key={answer.text}
+            ref={(element) => {
+              if (element) bubbleRefs.current.set(answer.text, element);
+              else bubbleRefs.current.delete(answer.text);
+            }}
             style={{
               fontSize: `${fontSize}px`,
               color: colorForIntensity(colorIntensity),
-              left: `${50 + Math.cos(angle) * radius}%`,
-              top: `${50 + Math.sin(angle) * radius * 0.78}%`,
+              left: `${position.left}%`,
+              top: `${position.top}%`,
               zIndex: Math.round(10 + intensity * 10),
             }}
           >
@@ -366,7 +479,10 @@ function BubbleCloud({ answers }: { answers: Word[] }) {
           </div>
         );
       })}
-      <div className={styles.cloudLegend} aria-label="Escala de frequência">
+      <div
+        className={styles.cloudLegend}
+        aria-label="Escala de frequência"
+      >
         <span>Mais frequente</span>
         <i className={styles.legendRed} />
         <i className={styles.legendOrange} />
