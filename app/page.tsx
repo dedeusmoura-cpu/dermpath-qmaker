@@ -2185,6 +2185,15 @@ export default function Home() {
                 ref={results.question.kind === "cloud" ? cloudResultRef : undefined}
                 className={`${styles.cloudFullscreenTarget} ${cloudFullscreen ? styles.cloudFullscreenActive : ""}`}
               >
+                {cloudFullscreen && (
+                  <div className={styles.cloudFullscreenHeader}>
+                    <AppHeader
+                      language={language}
+                      setLanguage={setLanguage}
+                      onBack={toggleCloudFullscreen}
+                    />
+                  </div>
+                )}
                 {results.question.kind === "cloud" && (
                   <button
                     className={styles.cloudFullscreenToggle}
