@@ -812,10 +812,12 @@ export default function Home() {
       });
       return lines;
     };
-    const drawLines = (lines: string[], y: number, lineHeight: number) => {
-      lines.forEach((line) => context.fillText(line, contentX, y + lineHeight));
-      return y + lines.length * lineHeight;
-    };
+  const drawLines = (lines: string[], y: number, lineHeight: number) => {
+    lines.forEach((line, index) =>
+      context.fillText(line, contentX, y + (index + 1) * lineHeight),
+    );
+    return y + lines.length * lineHeight;
+  };
     const truncateLines = (lines: string[], maxLines: number) => {
       if (lines.length <= maxLines) return lines;
       const visible = lines.slice(0, Math.max(maxLines, 1));
