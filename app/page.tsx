@@ -53,6 +53,7 @@ type SlideExportDetails = {
   title: string;
   stem: string;
   imageUrl?: string | null;
+  options?: string[];
   responseUrl: string;
   panelUrl: string;
 };
@@ -759,6 +760,7 @@ export default function Home() {
       title: form.title,
       stem: form.stem,
       imageUrl: form.imageUrl,
+      options: form.kind === "choice" ? form.options.filter(Boolean) : [],
       responseUrl: `${location.origin}?q=${editingId}`,
       panelUrl: `${location.origin}?q=${editingId}&painel=1`,
     };
@@ -788,15 +790,90 @@ export default function Home() {
     context.fillStyle = "#f2be38"; context.fillText("Path", brandX, 76); brandX += context.measureText("Path ").width;
     context.fillStyle = "#31bf70"; context.fillText("Q", brandX, 76); brandX += context.measureText("Q").width;
     context.fillStyle = "#4f94da"; context.font = "italic 600 46px Georgia"; context.fillText("Maker", brandX, 76);
-    context.fillStyle = "#152d52"; context.font = "600 62px Georgia";
-    const words = details.title.trim().split(/\s+/); let line = "", y = 230;
-    for (const word of words) { const next = `${line} ${word}`.trim(); if (context.measureText(next).width > 970) { context.fillText(line, 92, y); y += 72; line = word; } else line = next; }
-    context.fillText(line, 92, y); y += 72;
-    context.font = "32px Arial"; context.fillStyle = "#526278"; context.fillText(details.stem || (en ? "Question" : "Pergunta"), 92, y);
-    if (details.imageUrl) {
+    // Canvas does not wrap text by itself. Keep all question content in the
+    // left column so a long stem can never run under the QR Code.
+    const contentX = 92;
+    const contentWidth = 930;
+    const contentBottom = 810;
+    const wrapText = (text: string, maxWidth: number) => {
+      const lines: string[] = [];
+      text.split(/\n/).forEach((paragraph) => {
+        const words = paragraph.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) { lines.push(""); return; }
+        let line = "";
+        words.forEach((word) => {
+          const next = `${line} ${word}`.trim();
+          if (line && context.measureText(next).width > maxWidth) {
+            lines.push(line);
+            line = word;
+          } else line = next;
+        });
+        if (line) lines.push(line);
+      });
+      return lines;
+    };
+    const drawLines = (lines: string[], y: number, lineHeight: number) => {
+      lines.forEach((line) => context.fillText(line, contentX, y + lineHeight));
+      return y + lines.length * lineHeight;
+    };
+    const truncateLines = (lines: string[], maxLines: number) => {
+      if (lines.length <= maxLines) return lines;
+      const visible = lines.slice(0, Math.max(maxLines, 1));
+      visible[visible.length - 1] = `${visible[visible.length - 1].replace(/[.…]+$/, "")}…`;
+      return visible;
+    };
+
+    let y = 178;
+    context.fillStyle = "#152d52";
+    context.font = "600 56px Georgia";
+    const titleLines = truncateLines(wrapText(details.title || (en ? "Quiz" : "Quiz"), contentWidth), 3);
+    y = drawLines(titleLines, y, 64) + 14;
+
+    const options = (details.options ?? []).filter((option) => option.trim());
+    const optionFont = options.length > 4 ? 16 : 18;
+    const optionLineHeight = optionFont + 8;
+    context.font = `700 ${optionFont}px Arial`;
+    const optionLines = options.map((option, index) =>
+      wrapText(`${letters[index] ?? "•"}) ${option}`, contentWidth),
+    );
+    const optionsHeight = optionLines.length
+      ? 26 + optionLines.reduce((height, lines) => height + lines.length * optionLineHeight + 10, 0)
+      : 0;
+
+    const stem = details.stem || (en ? "Question" : "Pergunta");
+    const stemTop = y;
+    const stemSpace = Math.max(72, contentBottom - stemTop - optionsHeight - 14);
+    const stemSizes = [26, 24, 22, 20, 18, 16];
+    let stemFont = stemSizes[stemSizes.length - 1];
+    let stemLineHeight = stemFont + 9;
+    let stemLines: string[] = [];
+    for (const size of stemSizes) {
+      context.font = `${size}px Arial`;
+      const lines = wrapText(stem, contentWidth);
+      const lineHeight = size + 9;
+      stemFont = size;
+      stemLineHeight = lineHeight;
+      stemLines = lines;
+      if (lines.length * lineHeight <= stemSpace) break;
+    }
+    context.font = `${stemFont}px Arial`;
+    context.fillStyle = "#526278";
+    stemLines = truncateLines(stemLines, Math.max(1, Math.floor(stemSpace / stemLineHeight)));
+    y = drawLines(stemLines, y, stemLineHeight) + 14;
+
+    if (optionLines.length) {
+      context.font = `700 ${optionFont}px Arial`;
+      context.fillStyle = "#123765";
+      optionLines.forEach((lines) => {
+        y = drawLines(lines, y, optionLineHeight) + 10;
+      });
+    } else if (details.imageUrl) {
       const image = new Image(); image.crossOrigin = "anonymous"; image.src = details.imageUrl;
       await new Promise((resolve) => { image.onload = image.onerror = resolve; });
-      if (image.naturalWidth) { const scale = Math.min(860 / image.naturalWidth, 430 / image.naturalHeight); context.drawImage(image, 92, y + 55, image.naturalWidth * scale, image.naturalHeight * scale); }
+      if (image.naturalWidth) {
+        const scale = Math.min(contentWidth / image.naturalWidth, Math.max(0, contentBottom - y - 10) / image.naturalHeight);
+        if (scale > 0) context.drawImage(image, contentX, y + 10, image.naturalWidth * scale, image.naturalHeight * scale);
+      }
     }
     const qr = new Image();
     qr.crossOrigin = "anonymous";
@@ -2028,6 +2105,7 @@ export default function Home() {
       title: results.question.title,
       stem: results.question.stem,
       imageUrl: results.question.imageUrl,
+      options: results.question.kind === "choice" ? results.question.options : [],
       responseUrl: url,
       panelUrl,
     };
