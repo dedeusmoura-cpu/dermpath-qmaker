@@ -44,9 +44,16 @@ export default defineConfig(async () => {
   const { cloudflare } = await import("@cloudflare/vite-plugin");
 
   return {
-    server: isCodexSeatbeltSandbox
-      ? { watch: { useFsEvents: false, usePolling: true } }
-      : undefined,
+    server: {
+      // Vite enables browser-console forwarding automatically when it detects
+      // an agent. With the Vinext client runner this can report an error before
+      // its WebSocket has connected, creating the "send was called before
+      // connect" overlay instead of showing the app.
+      forwardConsole: false,
+      ...(isCodexSeatbeltSandbox
+        ? { watch: { useFsEvents: false, usePolling: true } }
+        : {}),
+    },
     plugins: [
       vinext(),
       sites(),
