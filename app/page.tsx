@@ -62,14 +62,9 @@ const dermPathUrl = "https://dermpath-navigator.vercel.app/";
 const historyCacheLifetime = 5 * 60 * 1000;
 
 function initialMode() {
-  // The create-quiz screen is the QMaker landing page.  The history is a
-  // deliberate destination reached through ?historico=1, rather than the
-  // implicit default when someone opens the root URL.
-  if (typeof window === "undefined") return "new" as const;
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("trofeu"))
-    return params.get("painel") === "1" ? "challenge-panel" : "challenge";
-  if (params.get("q")) return params.get("painel") === "1" ? "panel" : "vote";
+  // URL-dependent modes are selected in the effect below, after hydration.
+  // Reading window here makes SSR render one screen while the browser renders
+  // another for shared quiz/panel links, which triggers a hydration error.
   return "new" as const;
 }
 
