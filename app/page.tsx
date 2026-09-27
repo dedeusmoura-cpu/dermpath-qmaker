@@ -870,10 +870,23 @@ export default function Home() {
     const optionsHeight = optionLines.length
       ? 20 + optionRows * optionCardHeight + (optionRows - 1) * 12
       : 0;
+    const image = details.imageUrl ? new Image() : null;
+    if (image && details.imageUrl) {
+      image.crossOrigin = "anonymous";
+      image.src = details.imageUrl;
+      await new Promise((resolve) => {
+        image.onload = image.onerror = resolve;
+      });
+    }
+    const hasImage = Boolean(image?.naturalWidth);
+    const imageReservation = hasImage && optionLines.length ? 246 : 0;
 
     const stem = details.stem || (en ? "Question" : "Pergunta");
     const stemTop = y;
-    const stemSpace = Math.max(72, contentBottom - stemTop - optionsHeight - 14);
+    const stemSpace = Math.max(
+      72,
+      contentBottom - stemTop - optionsHeight - imageReservation - 14,
+    );
     const stemSizes = [26, 24, 22, 20, 18, 16];
     let stemFont = stemSizes[stemSizes.length - 1];
     let stemLineHeight = stemFont + 9;
@@ -891,6 +904,20 @@ export default function Home() {
     context.fillStyle = "#526278";
     stemLines = truncateLines(stemLines, Math.max(1, Math.floor(stemSpace / stemLineHeight)));
     y = drawLines(stemLines, y, stemLineHeight) + 14;
+
+    if (hasImage && image) {
+      const availableHeight = Math.max(0, contentBottom - y - optionsHeight - 16);
+      const maxHeight = optionLines.length
+        ? Math.min(230, availableHeight)
+        : availableHeight;
+      const scale = Math.min(contentWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+      if (scale > 0) {
+        const width = image.naturalWidth * scale;
+        const height = image.naturalHeight * scale;
+        context.drawImage(image, contentX + (contentWidth - width) / 2, y, width, height);
+        y += height + 16;
+      }
+    }
 
     if (optionLines.length) {
       const optionColors = ["#e54b5d", "#2f91c6", "#efb62b", "#269552"];
@@ -912,13 +939,6 @@ export default function Home() {
         );
       });
       y += optionsHeight;
-    } else if (details.imageUrl) {
-      const image = new Image(); image.crossOrigin = "anonymous"; image.src = details.imageUrl;
-      await new Promise((resolve) => { image.onload = image.onerror = resolve; });
-      if (image.naturalWidth) {
-        const scale = Math.min(contentWidth / image.naturalWidth, Math.max(0, contentBottom - y - 10) / image.naturalHeight);
-        if (scale > 0) context.drawImage(image, contentX, y + 10, image.naturalWidth * scale, image.naturalHeight * scale);
-      }
     }
     const qr = new Image();
     qr.crossOrigin = "anonymous";
