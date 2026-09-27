@@ -50,7 +50,6 @@ type ChallengeResults = {
   }[];
 };
 type SlideExportDetails = {
-  title: string;
   stem: string;
   imageUrl?: string | null;
   options?: string[];
@@ -550,12 +549,9 @@ function ChallengeDistribution({
               <span
                 className={styles.kicker}
               >{`QUIZ ${questionIndex + 1}`}</span>
-              <h2 style={{ margin: "6px 0 0", color: "#123765", fontSize: 19 }}>
-                {question.title}
-              </h2>
               <p
                 style={{
-                  margin: "10px 0 0",
+                  margin: "8px 0 0",
                   color: "#526278",
                   fontSize: 14,
                   lineHeight: 1.5,
@@ -764,7 +760,6 @@ export default function Home() {
   function currentFormSlide(): SlideExportDetails | null {
     if (!editingId) return null;
     return {
-      title: form.title,
       stem: form.stem,
       imageUrl: form.imageUrl,
       options: form.kind === "choice" ? form.options.filter(Boolean) : [],
@@ -851,10 +846,6 @@ export default function Home() {
     };
 
     let y = 178;
-    context.fillStyle = "#152d52";
-    context.font = "600 56px Georgia";
-    const titleLines = truncateLines(wrapText(details.title || (en ? "Quiz" : "Quiz"), contentWidth), 3);
-    y = drawLines(titleLines, y, 64) + 14;
 
     const options = (details.options ?? []).filter((option) => option.trim());
     const optionFont = options.length > 4 ? 17 : 20;
@@ -1521,7 +1512,6 @@ export default function Home() {
             </span>
           </header>
           <article className={styles.question}>
-            <h1>{current.title}</h1>
             <p>{current.stem}</p>
             {current.imageUrl && (
               <img
@@ -1975,6 +1965,18 @@ export default function Home() {
               </div>
             </fieldset>
             <label>
+              {en
+                ? "Short title (history only)"
+                : "Título curto (somente histórico)"}
+              <input
+                required
+                value={form.title}
+                onChange={(event) =>
+                  setForm({ ...form, title: event.target.value })
+                }
+              />
+            </label>
+            <label>
               {en ? "Question stem" : "Enunciado"}
               <textarea
                 required
@@ -2150,7 +2152,6 @@ export default function Home() {
     const url = `${location.origin}?q=${results.question.id}`;
     const panelUrl = `${location.origin}?q=${results.question.id}&painel=1`;
     const resultSlide: SlideExportDetails = {
-      title: results.question.title,
       stem: results.question.stem,
       imageUrl: results.question.imageUrl,
       options: results.question.kind === "choice" ? results.question.options : [],
@@ -2229,7 +2230,6 @@ export default function Home() {
               <span className={styles.kicker}>
                 {en ? "RESPONSE PANEL" : "PAINEL DE RESPOSTAS"} · {textKind}
               </span>
-              <h1>{results.question.title}</h1>
               <p
                 style={{
                   margin: "12px 0 0",
@@ -2366,7 +2366,6 @@ export default function Home() {
             <span>Dermatopatologia</span>
           </header>
           <article className={styles.question}>
-            <h1>{question.title}</h1>
             <p>{question.stem}</p>
             {question.imageUrl && (
               <img
