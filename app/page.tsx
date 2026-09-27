@@ -62,6 +62,13 @@ const letters = ["a", "b", "c", "d", "e", "f"];
 const dermPathUrl = "https://dermpath-navigator.vercel.app/";
 const historyCacheLifetime = 5 * 60 * 1000;
 
+function titleFromStem(stem: string) {
+  const firstSentence = stem.trim().replace(/\s+/g, " ").split(/[.!?]\s/)[0] ?? "";
+  return firstSentence.length > 72
+    ? `${firstSentence.slice(0, 69).trimEnd()}…`
+    : firstSentence;
+}
+
 function initialMode() {
   // URL-dependent modes are selected in the effect below, after hydration.
   // Reading window here makes SSR render one screen while the browser renders
@@ -1084,13 +1091,17 @@ export default function Home() {
   }
   async function create(event: FormEvent) {
     event.preventDefault();
+    const payload = {
+      ...form,
+      title: form.title.trim() || titleFromStem(form.stem),
+    };
     if (editingId) {
       const response = await teacherFetch(
         `/api/questions/${editingId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         },
         en,
       );
@@ -1108,7 +1119,7 @@ export default function Home() {
     const response = await fetch("/api/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     const data = await response.json();
     if (!response.ok) return setMessage(data.error);
@@ -1963,16 +1974,6 @@ export default function Home() {
                 </button>
               </div>
             </fieldset>
-            <label>
-              {en ? "Short title" : "Título curto"}
-              <input
-                required
-                value={form.title}
-                onChange={(event) =>
-                  setForm({ ...form, title: event.target.value })
-                }
-              />
-            </label>
             <label>
               {en ? "Question stem" : "Enunciado"}
               <textarea

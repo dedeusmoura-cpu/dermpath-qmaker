@@ -17,7 +17,7 @@ export async function POST(request: Request) {
     const kind = body.kind === "open" || body.kind === "cloud" ? body.kind : "choice";
     const correctAnswer = body.correctAnswer ?? 0;
     if (!title || !stem || (kind === "choice" && (options.length < 2 || options.length > 6 || correctAnswer < 0 || correctAnswer >= options.length))) {
-      return Response.json({ error: "Preencha título, enunciado e, nas questões objetivas, alternativas e resposta correta." }, { status: 400 });
+      return Response.json({ error: "Preencha o enunciado e, nas questões objetivas, as alternativas e a resposta correta." }, { status: 400 });
     }
     const [question] = await getDb().insert(questions).values({ title, stem, kind, options: JSON.stringify(options), correctAnswer, imageUrl: body.imageUrl?.trim() || null, createdAt: new Date() }).returning();
     return Response.json({ question: { ...question, options } }, { status: 201 });

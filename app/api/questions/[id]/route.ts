@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   const invalidChoice = question.kind === "choice" && (options.length < 2 || options.length > 6 || !Number.isInteger(correctAnswer) || correctAnswer < 0 || correctAnswer >= options.length);
   if (!title || !stem || invalidChoice) {
-    return Response.json({ error: "Preencha título, enunciado e, nas questões objetivas, alternativas e resposta correta." }, { status: 400 });
+    return Response.json({ error: "Preencha o enunciado e, nas questões objetivas, as alternativas e a resposta correta." }, { status: 400 });
   }
 
   await db.update(questions).set({ title, stem, options: JSON.stringify(options), correctAnswer, imageUrl }).where(eq(questions.id, questionId));
