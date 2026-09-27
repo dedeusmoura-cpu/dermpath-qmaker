@@ -812,12 +812,19 @@ export default function Home() {
       });
       return lines;
     };
-  const drawLines = (lines: string[], y: number, lineHeight: number) => {
+  const drawTextLines = (
+    lines: string[],
+    x: number,
+    y: number,
+    lineHeight: number,
+  ) => {
     lines.forEach((line, index) =>
-      context.fillText(line, contentX, y + (index + 1) * lineHeight),
+      context.fillText(line, x, y + (index + 1) * lineHeight),
     );
     return y + lines.length * lineHeight;
   };
+  const drawLines = (lines: string[], y: number, lineHeight: number) =>
+    drawTextLines(lines, contentX, y, lineHeight);
     const truncateLines = (lines: string[], maxLines: number) => {
       if (lines.length <= maxLines) return lines;
       const visible = lines.slice(0, Math.max(maxLines, 1));
@@ -832,14 +839,27 @@ export default function Home() {
     y = drawLines(titleLines, y, 64) + 14;
 
     const options = (details.options ?? []).filter((option) => option.trim());
-    const optionFont = options.length > 4 ? 16 : 18;
-    const optionLineHeight = optionFont + 8;
+    const optionFont = options.length > 4 ? 15 : 17;
+    const optionLineHeight = optionFont + 7;
+    const optionGap = 14;
+    const optionColumns = 2;
+    const optionWidth = (contentWidth - optionGap) / optionColumns;
     context.font = `700 ${optionFont}px Arial`;
     const optionLines = options.map((option, index) =>
-      wrapText(`${letters[index] ?? "•"}) ${option}`, contentWidth),
+      truncateLines(
+        wrapText(`${letters[index] ?? "•"}) ${option}`, optionWidth - 34),
+        2,
+      ),
     );
+    const optionRows = Math.ceil(optionLines.length / optionColumns);
+    const optionCardHeight = optionLines.length
+      ? Math.max(
+          64,
+          Math.max(...optionLines.map((lines) => lines.length * optionLineHeight + 26)),
+        )
+      : 0;
     const optionsHeight = optionLines.length
-      ? 26 + optionLines.reduce((height, lines) => height + lines.length * optionLineHeight + 10, 0)
+      ? 20 + optionRows * optionCardHeight + (optionRows - 1) * 12
       : 0;
 
     const stem = details.stem || (en ? "Question" : "Pergunta");
@@ -864,11 +884,25 @@ export default function Home() {
     y = drawLines(stemLines, y, stemLineHeight) + 14;
 
     if (optionLines.length) {
+      const optionColors = ["#e54b5d", "#2f91c6", "#efb62b", "#269552"];
       context.font = `700 ${optionFont}px Arial`;
-      context.fillStyle = "#123765";
-      optionLines.forEach((lines) => {
-        y = drawLines(lines, y, optionLineHeight) + 10;
+      optionLines.forEach((lines, index) => {
+        const column = index % optionColumns;
+        const row = Math.floor(index / optionColumns);
+        const x = contentX + column * (optionWidth + optionGap);
+        const top = y + row * (optionCardHeight + 12);
+        context.fillStyle = optionColors[index % optionColors.length];
+        context.fillRect(x, top, optionWidth, optionCardHeight);
+        context.fillStyle = index === 2 ? "#152d52" : "#ffffff";
+        const textHeight = lines.length * optionLineHeight;
+        drawTextLines(
+          lines,
+          x + 17,
+          top + (optionCardHeight - textHeight) / 2,
+          optionLineHeight,
+        );
       });
+      y += optionsHeight;
     } else if (details.imageUrl) {
       const image = new Image(); image.crossOrigin = "anonymous"; image.src = details.imageUrl;
       await new Promise((resolve) => { image.onload = image.onerror = resolve; });
