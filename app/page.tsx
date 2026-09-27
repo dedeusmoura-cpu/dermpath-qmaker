@@ -2305,6 +2305,13 @@ export default function Home() {
                   {en ? "Download PowerPoint with QR Code" : "Baixar PowerPoint com QR Code"}
                 </button>
               </div>
+              {results.question.imageUrl && (
+                <img
+                  className={styles.micrograph}
+                  src={results.question.imageUrl}
+                  alt={en ? "Question image" : "Imagem da questão"}
+                />
+              )}
               <div
                 ref={results.question.kind === "cloud" ? cloudResultRef : undefined}
                 className={`${styles.cloudFullscreenTarget} ${cloudFullscreen ? styles.cloudFullscreenActive : ""}`}
