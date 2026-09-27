@@ -879,7 +879,7 @@ export default function Home() {
       });
     }
     const hasImage = Boolean(image?.naturalWidth);
-    const imageReservation = hasImage && optionLines.length ? 246 : 0;
+    const imageReservation = hasImage && optionLines.length ? 336 : 0;
 
     const stem = details.stem || (en ? "Question" : "Pergunta");
     const stemTop = y;
@@ -908,7 +908,7 @@ export default function Home() {
     if (hasImage && image) {
       const availableHeight = Math.max(0, contentBottom - y - optionsHeight - 16);
       const maxHeight = optionLines.length
-        ? Math.min(230, availableHeight)
+        ? Math.min(320, availableHeight)
         : availableHeight;
       const scale = Math.min(contentWidth / image.naturalWidth, maxHeight / image.naturalHeight);
       if (scale > 0) {
