@@ -825,6 +825,17 @@ export default function Home() {
   };
   const drawLines = (lines: string[], y: number, lineHeight: number) =>
     drawTextLines(lines, contentX, y, lineHeight);
+  const fillRoundedRect = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    radius: number,
+  ) => {
+    context.beginPath();
+    context.roundRect(x, y, width, height, radius);
+    context.fill();
+  };
     const truncateLines = (lines: string[], maxLines: number) => {
       if (lines.length <= maxLines) return lines;
       const visible = lines.slice(0, Math.max(maxLines, 1));
@@ -839,9 +850,9 @@ export default function Home() {
     y = drawLines(titleLines, y, 64) + 14;
 
     const options = (details.options ?? []).filter((option) => option.trim());
-    const optionFont = options.length > 4 ? 15 : 17;
-    const optionLineHeight = optionFont + 7;
-    const optionGap = 14;
+    const optionFont = options.length > 4 ? 17 : 20;
+    const optionLineHeight = optionFont + 8;
+    const optionGap = 16;
     const optionColumns = 2;
     const optionWidth = (contentWidth - optionGap) / optionColumns;
     context.font = `700 ${optionFont}px Arial`;
@@ -854,8 +865,8 @@ export default function Home() {
     const optionRows = Math.ceil(optionLines.length / optionColumns);
     const optionCardHeight = optionLines.length
       ? Math.max(
-          64,
-          Math.max(...optionLines.map((lines) => lines.length * optionLineHeight + 26)),
+          82,
+          Math.max(...optionLines.map((lines) => lines.length * optionLineHeight + 30)),
         )
       : 0;
     const optionsHeight = optionLines.length
@@ -892,12 +903,12 @@ export default function Home() {
         const x = contentX + column * (optionWidth + optionGap);
         const top = y + row * (optionCardHeight + 12);
         context.fillStyle = optionColors[index % optionColors.length];
-        context.fillRect(x, top, optionWidth, optionCardHeight);
+        fillRoundedRect(x, top, optionWidth, optionCardHeight, 20);
         context.fillStyle = index === 2 ? "#152d52" : "#ffffff";
         const textHeight = lines.length * optionLineHeight;
         drawTextLines(
           lines,
-          x + 17,
+          x + 22,
           top + (optionCardHeight - textHeight) / 2,
           optionLineHeight,
         );
